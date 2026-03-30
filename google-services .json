@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "138789959645",
+    "project_id": "triptailor-71050",
+    "storage_bucket": "triptailor-71050.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:138789959645:android:22d22b355620c3d2b5e834",
+        "android_client_info": {
+          "package_name": "com.OrWinik.TripTailor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY3ZD6jh4-Xa7-X_4gIEXqw0ksch4ZREU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

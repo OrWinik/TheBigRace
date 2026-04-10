@@ -213,8 +213,20 @@ export default function HomeScreen() {
             if (codeSnap.exists()) setGameCode(String(codeSnap.val()));
             setHasValidCode(true);
           } else {
+            // Flag expired — clear it
+            const codeSnap = await get(ref(db, `users/${user.uid}/game_code`));
+            if (codeSnap.exists()) {
+              // Find the code node in activation_codes and mark it expired
+              const codesSnap = await get(ref(db, 'activation_codes'));
+              codesSnap.forEach((child) => {
+                if (String(child.val().code) === String(codeSnap.val())) {
+                  set(ref(db, `activation_codes/${child.key}/expired`), true);
+                }
+              });
+            }
             await set(ref(db, `users/${user.uid}/hasSubmittedCode`), false);
             await set(ref(db, `users/${user.uid}/codeSubmittedAt`), null);
+            await set(ref(db, `users/${user.uid}/game_code`), null);
             setHasValidCode(false);
           }
         } else {
@@ -274,29 +286,104 @@ export default function HomeScreen() {
     if (!trimmed) { Alert.alert(t('error'), t('errorEnterCode')); return; }
     setIsValidating(true);
     try {
-      const snapshot = await get(ref(db, 'users'));
-      if (snapshot.exists()) {
-        let foundCode = null;
-        snapshot.forEach((child) => {
-          const data = child.val();
-          if (data.game_code && String(data.game_code) === String(trimmed)) {
-            foundCode = String(data.game_code);
-          }
-        });
-        if (foundCode) {
-          setGameCode(foundCode);
-          await set(ref(db, `users/${user.uid}/hasSubmittedCode`), true);
-          await set(ref(db, `users/${user.uid}/codeSubmittedAt`), Date.now());
-          setHasValidCode(true);
-          setShowCodeModal(false);
-          setShowCountryModal(true);
-        } else {
-          Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
-        }
-      } else {
-        Alert.alert(t('error'), t('dbError'));
+      // ── Find matching code in activation_codes/ ───────────────────────────
+      const codesSnap = await get(ref(db, 'activation_codes'));
+      if (!codesSnap.exists()) {
+        Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
+        return;
       }
+  
+      let codeKey  = null;
+      let codeData = null;
+      codesSnap.forEach((child) => {
+        if (String(child.val().code) === String(trimmed)) {
+          codeKey  = child.key;
+          codeData = child.val();
+        }
+      });
+  
+      if (!codeKey || !codeData) {
+        Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
+        return;
+      }
+
+      if (codeData.expired === true) {
+        Alert.alert(t('invalidCode'), t('codeExpired')); // add 'codeExpired' to i18n
+        return;
+      }
+  
+      const { tier, email: codeEmail } = codeData;
+      const currentEmail = user?.email?.toLowerCase().trim();
+  
+      // ── Helper: stamp the 30-day flag onto this user's profile ───────────
+      const saveUserFlag = async () => {
+        await set(ref(db, `users/${user.uid}/hasSubmittedCode`), true);
+        await set(ref(db, `users/${user.uid}/codeSubmittedAt`), Date.now());
+        await set(ref(db, `users/${user.uid}/game_code`), trimmed);
+      };
+  
+      const markCodeUsed = () =>
+        set(ref(db, `activation_codes/${codeKey}/used`), true);
+  
+      const activateAndProceed = async () => {
+        await saveUserFlag();
+        setGameCode(trimmed);
+        setHasValidCode(true);
+        setShowCodeModal(false);
+        setShowCountryModal(true);
+      };
+  
+      // ─────────────────────────────────────────────────────────────────────
+      // TIER: 1dev — email must match, single user only
+      // ─────────────────────────────────────────────────────────────────────
+      if (tier === '1dev') {
+        if (currentEmail !== codeEmail?.toLowerCase().trim()) {
+          Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
+          return;
+        }
+        await markCodeUsed();
+        await activateAndProceed();
+        return;
+      }
+  
+      // ─────────────────────────────────────────────────────────────────────
+      // TIER: 2dev (1 primary + 1 extra) or 3dev (1 primary + 3 extra)
+      // ─────────────────────────────────────────────────────────────────────
+      const maxExtras = tier === '2dev' ? 1 : tier === '4dev' ? 3 : 0;
+      const joinedUsers = codeData.joinedUsers
+        ? Object.values(codeData.joinedUsers)
+        : [];
+      const isPrimary   = currentEmail === codeEmail?.toLowerCase().trim();
+  
+      if (isPrimary) {
+        await markCodeUsed();
+        await activateAndProceed();
+        return;
+      }
+  
+      // Secondary user — already registered under this code (re-login)
+      const alreadyJoined = joinedUsers.some((entry) => entry.uid === user.uid);
+      if (alreadyJoined) {
+        await activateAndProceed();
+        return;
+      }
+  
+      // Check remaining slots
+      if (joinedUsers.length >= maxExtras) {
+        Alert.alert(t('invalidCode'), t('codeFull'));
+        return;
+      }
+  
+      // Slot open — register secondary user under the code node
+      await push(ref(db, `activation_codes/${codeKey}/joinedUsers`), {
+        uid:      user.uid,
+        email:    user.email,
+        joinedAt: Date.now(),
+      });
+      await activateAndProceed();
+  
     } catch (e) {
+      console.error('validateCode error:', e);
       Alert.alert(t('error'), t('validateError'));
     } finally {
       setIsValidating(false);

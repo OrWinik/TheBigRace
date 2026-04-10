@@ -144,6 +144,10 @@ const translations = {
     beFirst:          'Be the first to complete this circuit.',
     you:              'YOU',
     globalRankLabel:  'GLOBAL RANKING',
+
+    codeFull: "This code's group is already full.",
+    codeExpired: 'This code has expired.',
+
   },
 
   he: {
@@ -284,6 +288,9 @@ const translations = {
     beFirst:          'היה הראשון לסיים את המסלול הזה.',
     you:              'אתה',
     globalRankLabel:  'דירוג עולמי',
+    codeFull: "הקבוצה לקוד זה כבר מלאה.",
+    codeExpired: 'קוד זה פג תוקף.',
+
   },
 
   sr: {
@@ -424,6 +431,10 @@ const translations = {
     beFirst:          'Budite prvi koji završi ovu stazu.',
     you:              'TI',
     globalRankLabel:  'GLOBALNI RANG',
+
+    codeFull: "Grupa za ovaj kod je već popunjena.",
+    codeExpired: 'Ovaj kod je istekao.',
+
   },
 };
 

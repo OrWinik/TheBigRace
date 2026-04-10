@@ -54,3 +54,4 @@ assets/
 
 # env files
 .env*
+assets/

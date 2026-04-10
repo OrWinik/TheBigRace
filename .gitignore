@@ -37,3 +37,20 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# AI / tooling
+.claude/
+
+# Expo / builds
+.expo/
+dist/
+web-build/
+
+# dependencies
+node_modules/
+
+# large local assets (IMPORTANT)
+assets/
+
+# env files
+.env*

@@ -249,19 +249,19 @@ const styles = StyleSheet.create({
   rankGold:  { color: C.gold },
   rankGreen: { color: C.secondary },
 
-  nameBlock: { flex: 1, paddingLeft: 4 },
-  nameRow:   { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  nameBlock: { flex: 1, paddingHorizontal: 4, minWidth: 0 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
   nameText:  { fontSize: 15, fontWeight: '800', color: C.onSurface, letterSpacing: 0.5 },
   nameGold:  { color: C.gold },
   nameGreen: { color: C.secondary },
   nameDim:   { color: C.onVariant, fontWeight: '600', fontSize: 13 },
 
-  youBadge:     { backgroundColor: C.secondary, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3, marginLeft: 6 },
+  youBadge: { backgroundColor: C.secondary, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
   youBadgeText: { fontSize: 9, fontWeight: '900', color: C.base, letterSpacing: 1 },
 
   globalRankText: { fontSize: 10, color: C.onVariant, letterSpacing: 2, marginTop: 3, textTransform: 'uppercase' },
 
-  timeText:  { fontSize: 17, fontWeight: '800', color: C.onSurface, letterSpacing: 1, textAlign: 'right', minWidth: 58 },
+  timeText: { fontSize: 17, fontWeight: '800', color: C.onSurface, letterSpacing: 1, textAlign: 'right', minWidth: 68 },
   timeGold:  { color: C.gold },
   timeGreen: { color: C.secondary },
   timeDim:   { color: C.onVariant, fontSize: 14, fontWeight: '600' },

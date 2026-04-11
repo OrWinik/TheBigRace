@@ -22,17 +22,17 @@ import { useTranslation } from '../../i18n';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
-  base:          '#060e20',
-  surfaceLow:    '#091328',
-  surfaceHigh:   '#192540',
+  base: '#060e20',
+  surfaceLow: '#091328',
+  surfaceHigh: '#192540',
   surfaceBright: '#1f2b49',
-  outline:       '#40485d',
-  primary:       '#85adff',
-  secondary:     '#69f6b8',
-  danger:        '#7f1d1d',
-  dangerText:    '#f87171',
-  onSurface:     '#dee5ff',
-  onVariant:     '#a3aac4',
+  outline: '#40485d',
+  primary: '#85adff',
+  secondary: '#69f6b8',
+  danger: '#7f1d1d',
+  dangerText: '#f87171',
+  onSurface: '#dee5ff',
+  onVariant: '#a3aac4',
 };
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -143,7 +143,7 @@ const belgradeQuestions = [
     videos: [require('../../assets/Videos/belg_v9.mov')],
     images: [],
     answerType: 'text+photo',
-    answers: ["אבא דבשמיא יתשקד שמך תתא","Πάτερ ἡμῶν ὁ ἐν","Оче наш, који си на","Pater noster, qui es in","أبانا الذي في السماوات، ليتقدس","Отче наш — Сущий на небесах",],
+    answers: ["אבא דבשמיא יתשקד שמך תתא", "Πάτερ ἡμῶν ὁ ἐν", "Оче наш, који си на", "Pater noster, qui es in", "أبانا الذي في السماوات، ليتقدس", "Отче наш — Сущий на небесах",],
   },
 ];
 
@@ -151,60 +151,59 @@ const belgradeQuestions = [
 export default function HomeScreen() {
   const { t, isRTL } = useTranslation();
 
-  const [showRulesModal, setShowRulesModal]     = useState(false);
-  const [showCodeModal, setShowCodeModal]       = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [showGameModal, setShowGameModal]       = useState(false);
-  const [showEndModal, setShowEndModal]         = useState(false);
+  const [showGameModal, setShowGameModal] = useState(false);
+  const [showEndModal, setShowEndModal] = useState(false);
 
-  const [gameCode, setGameCode]               = useState('');
-  const [inputCode, setInputCode]             = useState('');
+  const [gameCode, setGameCode] = useState('');
+  const [inputCode, setInputCode] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
 
   const [hasValidCode, setHasValidCode] = useState(false);
-  const [codeChecked, setCodeChecked]   = useState(false);
+  const [codeChecked, setCodeChecked] = useState(false);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [textAnswer, setTextAnswer]     = useState('');
-  const [photoUri, setPhotoUri]         = useState(null);
-  const [videoUri, setVideoUri]         = useState(null);
-  const [wrongAnswer, setWrongAnswer]   = useState(false);
+  const [textAnswer, setTextAnswer] = useState('');
+  const [photoUri, setPhotoUri] = useState(null);
+  const [videoUri, setVideoUri] = useState(null);
+  const [wrongAnswer, setWrongAnswer] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-  const [isUploading, setIsUploading]   = useState(false);
-  const [codeFocused, setCodeFocused]   = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [codeFocused, setCodeFocused] = useState(false);
   const [answerFocused, setAnswerFocused] = useState(false);
 
-  const [startTime, setStartTime]     = useState(null);
-  const [finalTime, setFinalTime]     = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [finalTime, setFinalTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  const [welcomeEnded, setWelcomeEnded]         = useState(false);
-  const [showSkipWelcome, setShowSkipWelcome]   = useState(false);
+  const [welcomeEnded, setWelcomeEnded] = useState(false);
+  const [showSkipWelcome, setShowSkipWelcome] = useState(false);
   const [finishVideoEnded, setFinishVideoEnded] = useState(false);
-  const [showSkipFinish, setShowSkipFinish]     = useState(false);
+  const [showSkipFinish, setShowSkipFinish] = useState(false);
 
   const skipWelcomeTimerRef = useRef(null);
-  const skipFinishTimerRef  = useRef(null);
-  const welcomeVideoRef     = useRef(null);
-  const finishVideoRef      = useRef(null);
-  const appStateRef         = useRef(AppState.currentState);
+  const skipFinishTimerRef = useRef(null);
+  const welcomeVideoRef = useRef(null);
+  const finishVideoRef = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
 
   const auth = getAuth();
-  const db   = getDatabase();
+  const db = getDatabase();
   const user = auth.currentUser;
 
   const countries = ['Belgrade'];
 
   const textAlign = isRTL ? { textAlign: 'right' } : {};
-  const rowStyle  = isRTL ? { flexDirection: 'row-reverse' } : {};
+  const rowStyle = isRTL ? { flexDirection: 'row-reverse' } : {};
 
   // ── Check code flag on mount ───────────────────────────────────────────────
   useEffect(() => {
     const checkCodeFlag = async () => {
       if (!user) { setCodeChecked(true); return; }
       try {
-        const snap     = await get(ref(db, `users/${user.uid}/hasSubmittedCode`));
+        const snap = await get(ref(db, `users/${user.uid}/hasSubmittedCode`));
         const timeSnap = await get(ref(db, `users/${user.uid}/codeSubmittedAt`));
         if (snap.exists() && snap.val() === true && timeSnap.exists()) {
           const age = Date.now() - timeSnap.val();
@@ -292,16 +291,16 @@ export default function HomeScreen() {
         Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
         return;
       }
-  
-      let codeKey  = null;
+
+      let codeKey = null;
       let codeData = null;
       codesSnap.forEach((child) => {
         if (String(child.val().code) === String(trimmed)) {
-          codeKey  = child.key;
+          codeKey = child.key;
           codeData = child.val();
         }
       });
-  
+
       if (!codeKey || !codeData) {
         Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
         return;
@@ -311,20 +310,20 @@ export default function HomeScreen() {
         Alert.alert(t('invalidCode'), t('codeExpired')); // add 'codeExpired' to i18n
         return;
       }
-  
+
       const { tier, email: codeEmail } = codeData;
       const currentEmail = user?.email?.toLowerCase().trim();
-  
+
       // ── Helper: stamp the 30-day flag onto this user's profile ───────────
       const saveUserFlag = async () => {
         await set(ref(db, `users/${user.uid}/hasSubmittedCode`), true);
         await set(ref(db, `users/${user.uid}/codeSubmittedAt`), Date.now());
         await set(ref(db, `users/${user.uid}/game_code`), trimmed);
       };
-  
+
       const markCodeUsed = () =>
         set(ref(db, `activation_codes/${codeKey}/used`), true);
-  
+
       const activateAndProceed = async () => {
         await saveUserFlag();
         setGameCode(trimmed);
@@ -332,7 +331,7 @@ export default function HomeScreen() {
         setShowCodeModal(false);
         setShowCountryModal(true);
       };
-  
+
       // ─────────────────────────────────────────────────────────────────────
       // TIER: 1dev — email must match, single user only
       // ─────────────────────────────────────────────────────────────────────
@@ -345,7 +344,7 @@ export default function HomeScreen() {
         await activateAndProceed();
         return;
       }
-  
+
       // ─────────────────────────────────────────────────────────────────────
       // TIER: 2dev (1 primary + 1 extra) or 3dev (1 primary + 3 extra)
       // ─────────────────────────────────────────────────────────────────────
@@ -353,35 +352,35 @@ export default function HomeScreen() {
       const joinedUsers = codeData.joinedUsers
         ? Object.values(codeData.joinedUsers)
         : [];
-      const isPrimary   = currentEmail === codeEmail?.toLowerCase().trim();
-  
+      const isPrimary = currentEmail === codeEmail?.toLowerCase().trim();
+
       if (isPrimary) {
         await markCodeUsed();
         await activateAndProceed();
         return;
       }
-  
+
       // Secondary user — already registered under this code (re-login)
       const alreadyJoined = joinedUsers.some((entry) => entry.uid === user.uid);
       if (alreadyJoined) {
         await activateAndProceed();
         return;
       }
-  
+
       // Check remaining slots
       if (joinedUsers.length >= maxExtras) {
         Alert.alert(t('invalidCode'), t('codeFull'));
         return;
       }
-  
+
       // Slot open — register secondary user under the code node
       await push(ref(db, `activation_codes/${codeKey}/joinedUsers`), {
-        uid:      user.uid,
-        email:    user.email,
+        uid: user.uid,
+        email: user.email,
         joinedAt: Date.now(),
       });
       await activateAndProceed();
-  
+
     } catch (e) {
       console.error('validateCode error:', e);
       Alert.alert(t('error'), t('validateError'));
@@ -539,7 +538,7 @@ export default function HomeScreen() {
   // ── Full reset ─────────────────────────────────────────────────────────────
   const resetAll = () => {
     if (skipWelcomeTimerRef.current) clearTimeout(skipWelcomeTimerRef.current);
-    if (skipFinishTimerRef.current)  clearTimeout(skipFinishTimerRef.current);
+    if (skipFinishTimerRef.current) clearTimeout(skipFinishTimerRef.current);
     setShowEndModal(false); setShowCodeModal(false); setShowCountryModal(false);
     setShowWelcomeModal(false); setShowGameModal(false);
     setInputCode(''); setSelectedCountry('');
@@ -605,6 +604,11 @@ export default function HomeScreen() {
   // ─── Main render ───────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/LogoT.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <Text style={[styles.brandTitle, textAlign]}>THE BIG RACE</Text>
       <Text style={[styles.brandSubtitle, textAlign]}>{t('brandSubtitle')}</Text>
 
@@ -613,31 +617,6 @@ export default function HomeScreen() {
           {hasValidCode ? t('startGame') : t('enterCode')}
         </Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.rulesLink} onPress={() => setShowRulesModal(true)}>
-        <Text style={styles.rulesLinkText}>{t('gameRules')}</Text>
-      </TouchableOpacity>
-
-      {/* ── Rules Modal ── */}
-      <Modal visible={showRulesModal} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={[styles.modalHeader, rowStyle]}>
-              <Text style={styles.modalTitle}>{t('gameRulesTitle')}</Text>
-              <TouchableOpacity onPress={() => setShowRulesModal(false)}>
-                <Text style={styles.modalClose}>X</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.rulesScroll}>
-              <Text style={[styles.rulesText, textAlign]}>
-                [Add your game rules here]{'\n\n'}
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.{'\n\n'}
-                [More rules...]
-              </Text>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
 
       {/* ── Code Entry Modal ── */}
       <Modal visible={showCodeModal} animationType="fade" transparent>
@@ -823,65 +802,66 @@ export default function HomeScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  loadingScreen:      { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center' },
-  container:          { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, backgroundColor: C.base },
-  brandTitle:         { fontSize: 42, fontWeight: '900', fontStyle: 'italic', color: C.primary, letterSpacing: 2, marginBottom: 6, textAlign: 'left', alignSelf: 'flex-start' },
-  brandSubtitle:      { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 56, alignSelf: 'flex-start' },
-  primaryButton:      { width: '100%', paddingVertical: 18, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
-  buttonDisabled:     { opacity: 0.5 },
-  primaryButtonText:  { color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
-  rulesLink:          { marginTop: 4 },
-  rulesLinkText:      { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', textDecorationLine: 'underline' },
-  modalOverlay:       { flex: 1, backgroundColor: 'rgba(6,14,32,0.88)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard:          { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, padding: 24, borderWidth: 1, borderColor: C.surfaceHigh, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.12, shadowRadius: 32, elevation: 12 },
-  modalHeader:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  modalTitle:         { fontSize: 16, fontWeight: '800', color: C.onSurface, letterSpacing: 3 },
-  modalClose:         { fontSize: 18, color: C.onVariant, fontWeight: '700' },
-  modalSubtext:       { fontSize: 13, color: C.onVariant, marginBottom: 20, lineHeight: 20 },
-  fieldLabel:         { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
-  codeInput:          { backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, fontSize: 22, color: C.onSurface, letterSpacing: 6, marginBottom: 20, textAlign: 'center' },
-  codeInputFocused:   { backgroundColor: C.surfaceBright, borderColor: C.primary },
-  rulesScroll:        { maxHeight: 300, marginBottom: 8 },
-  rulesText:          { fontSize: 15, color: C.onVariant, lineHeight: 24 },
-  cityButton:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceHigh, borderRadius: 8, paddingVertical: 18, paddingHorizontal: 20, marginBottom: 10, borderWidth: 1, borderColor: C.secondary },
-  cityButtonText:     { flex: 1, fontSize: 16, fontWeight: '800', color: C.secondary, letterSpacing: 2 },
-  cityChevron:        { fontSize: 22, color: C.secondary, fontWeight: '700' },
-  videoFullScreen:    { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  fullScreenVideo:    { width: '100%', height: '100%', position: 'absolute' },
-  skipButton:         { position: 'absolute', top: 55, right: 24, backgroundColor: 'rgba(6,14,32,0.7)', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  skipButtonText:     { color: C.onSurface, fontSize: 14, fontWeight: '600', letterSpacing: 1 },
+  loadingScreen: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, backgroundColor: C.base },
+  brandTitle: { fontSize: 42, fontWeight: '900', fontStyle: 'italic', color: C.primary, letterSpacing: 2, marginBottom: 6, textAlign: 'left', alignSelf: 'flex-start' },
+  brandSubtitle: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 56, alignSelf: 'flex-start' },
+  primaryButton: { width: '100%', paddingVertical: 18, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
+  buttonDisabled: { opacity: 0.5 },
+  primaryButtonText: { color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
+  rulesLink: { marginTop: 4 },
+  rulesLinkText: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', textDecorationLine: 'underline' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(6,14,32,0.88)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, padding: 24, borderWidth: 1, borderColor: C.surfaceHigh, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.12, shadowRadius: 32, elevation: 12 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: C.onSurface, letterSpacing: 3 },
+  modalClose: { fontSize: 18, color: C.onVariant, fontWeight: '700' },
+  modalSubtext: { fontSize: 13, color: C.onVariant, marginBottom: 20, lineHeight: 20 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
+  codeInput: { backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, fontSize: 22, color: C.onSurface, letterSpacing: 6, marginBottom: 20, textAlign: 'center' },
+  codeInputFocused: { backgroundColor: C.surfaceBright, borderColor: C.primary },
+  rulesScroll: { maxHeight: 300, marginBottom: 8 },
+  rulesText: { fontSize: 15, color: C.onVariant, lineHeight: 24 },
+  cityButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceHigh, borderRadius: 8, paddingVertical: 18, paddingHorizontal: 20, marginBottom: 10, borderWidth: 1, borderColor: C.secondary },
+  cityButtonText: { flex: 1, fontSize: 16, fontWeight: '800', color: C.secondary, letterSpacing: 2 },
+  cityChevron: { fontSize: 22, color: C.secondary, fontWeight: '700' },
+  videoFullScreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  fullScreenVideo: { width: '100%', height: '100%', position: 'absolute' },
+  skipButton: { position: 'absolute', top: 55, right: 24, backgroundColor: 'rgba(6,14,32,0.7)', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  skipButtonText: { color: C.onSurface, fontSize: 14, fontWeight: '600', letterSpacing: 1 },
   startRaceContainer: { position: 'absolute', bottom: 60, alignSelf: 'center' },
-  startRaceButton:    { backgroundColor: C.primary, paddingVertical: 18, paddingHorizontal: 50, borderRadius: 4, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20 },
-  startRaceButtonText:{ color: C.base, fontSize: 16, fontWeight: '800', letterSpacing: 3 },
-  gameContainer:      { flex: 1, backgroundColor: C.base },
-  gameHeader:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 55, paddingHorizontal: 20, paddingBottom: 14, backgroundColor: C.surfaceLow, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh },
-  timerContainer:     { backgroundColor: C.surfaceHigh, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: C.primary },
-  timerLabel:         { fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 2 },
-  timerText:          { fontSize: 22, fontWeight: '900', color: C.primary, letterSpacing: 2 },
-  exitButton:         { backgroundColor: C.danger, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 4, borderWidth: 1, borderColor: C.dangerText },
-  exitButtonText:     { color: C.dangerText, fontSize: 13, fontWeight: '800', letterSpacing: 2 },
-  gameScroll:         { flex: 1 },
-  gameScrollContent:  { padding: 20, paddingBottom: 60 },
-  questionNumber:     { fontSize: 11, color: C.onVariant, marginBottom: 6, letterSpacing: 3, textTransform: 'uppercase' },
-  missionTitle:       { fontSize: 22, fontWeight: '900', color: C.primary, marginBottom: 20, letterSpacing: 0.5 },
-  mediaVideo:         { width: '100%', height: 220, borderRadius: 8, marginBottom: 16, backgroundColor: '#000' },
-  mediaImage:         { width: '100%', height: 220, borderRadius: 8, marginBottom: 16, backgroundColor: C.surfaceHigh },
-  questionText:       { fontSize: 15, color: C.onSurface, marginBottom: 24, lineHeight: 24 },
-  answerInput:        { backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: C.onSurface, marginBottom: 10 },
+  startRaceButton: { backgroundColor: C.primary, paddingVertical: 18, paddingHorizontal: 50, borderRadius: 4, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20 },
+  startRaceButtonText: { color: C.base, fontSize: 16, fontWeight: '800', letterSpacing: 3 },
+  gameContainer: { flex: 1, backgroundColor: C.base },
+  gameHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 55, paddingHorizontal: 20, paddingBottom: 14, backgroundColor: C.surfaceLow, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh },
+  timerContainer: { backgroundColor: C.surfaceHigh, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: C.primary },
+  timerLabel: { fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 2 },
+  timerText: { fontSize: 22, fontWeight: '900', color: C.primary, letterSpacing: 2 },
+  exitButton: { backgroundColor: C.danger, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 4, borderWidth: 1, borderColor: C.dangerText },
+  exitButtonText: { color: C.dangerText, fontSize: 13, fontWeight: '800', letterSpacing: 2 },
+  gameScroll: { flex: 1 },
+  gameScrollContent: { padding: 20, paddingBottom: 60 },
+  questionNumber: { fontSize: 11, color: C.onVariant, marginBottom: 6, letterSpacing: 3, textTransform: 'uppercase' },
+  missionTitle: { fontSize: 22, fontWeight: '900', color: C.primary, marginBottom: 20, letterSpacing: 0.5 },
+  mediaVideo: { width: '100%', height: 220, borderRadius: 8, marginBottom: 16, backgroundColor: '#000' },
+  mediaImage: { width: '100%', height: 220, borderRadius: 8, marginBottom: 16, backgroundColor: C.surfaceHigh },
+  questionText: { fontSize: 15, color: C.onSurface, marginBottom: 24, lineHeight: 24 },
+  answerInput: { backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: C.onSurface, marginBottom: 10 },
   answerInputFocused: { backgroundColor: C.surfaceBright, borderColor: C.primary },
-  errorText:          { color: '#ff6b6b', fontSize: 13, marginBottom: 12, letterSpacing: 0.3, fontWeight: '600' },
-  mediaCapture:       { marginBottom: 16 },
-  captureButton:      { backgroundColor: C.surfaceHigh, paddingVertical: 14, paddingHorizontal: 20, borderRadius: 6, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: C.outline },
-  captureButtonText:  { color: C.onSurface, fontSize: 15, fontWeight: '600' },
-  previewImage:       { width: '100%', height: 200, borderRadius: 8, marginTop: 6 },
-  videoConfirm:       { color: C.secondary, fontSize: 14, fontWeight: '700', textAlign: 'center', marginTop: 6, letterSpacing: 1 },
+  errorText: { color: '#ff6b6b', fontSize: 13, marginBottom: 12, letterSpacing: 0.3, fontWeight: '600' },
+  mediaCapture: { marginBottom: 16 },
+  captureButton: { backgroundColor: C.surfaceHigh, paddingVertical: 14, paddingHorizontal: 20, borderRadius: 6, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: C.outline },
+  captureButtonText: { color: C.onSurface, fontSize: 15, fontWeight: '600' },
+  previewImage: { width: '100%', height: 200, borderRadius: 8, marginTop: 6 },
+  videoConfirm: { color: C.secondary, fontSize: 14, fontWeight: '700', textAlign: 'center', marginTop: 6, letterSpacing: 1 },
   uploadingContainer: { alignItems: 'center', marginVertical: 24 },
-  uploadingText:      { color: C.onVariant, fontSize: 11, marginTop: 12, letterSpacing: 3, textTransform: 'uppercase' },
-  endResultsContainer:{ flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 32, width: '100%' },
-  endTrophy:          { fontSize: 72, marginBottom: 16, color: C.secondary },
-  endTitle:           { fontSize: 32, fontWeight: '900', color: C.onSurface, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase' },
-  endCity:            { fontSize: 13, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 36 },
-  endTimeCard:        { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.secondary, paddingVertical: 20, paddingHorizontal: 40, alignItems: 'center', marginBottom: 36, width: '100%', shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24 },
-  endTimeLabel:       { fontSize: 11, fontWeight: '700', color: C.secondary, letterSpacing: 3, marginBottom: 8, textTransform: 'uppercase' },
-  endTimeValue:       { fontSize: 44, fontWeight: '900', color: C.secondary, letterSpacing: 2 },
+  uploadingText: { color: C.onVariant, fontSize: 11, marginTop: 12, letterSpacing: 3, textTransform: 'uppercase' },
+  endResultsContainer: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 32, width: '100%' },
+  endTrophy: { fontSize: 72, marginBottom: 16, color: C.secondary },
+  endTitle: { fontSize: 32, fontWeight: '900', color: C.onSurface, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase' },
+  endCity: { fontSize: 13, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 36 },
+  endTimeCard: { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.secondary, paddingVertical: 20, paddingHorizontal: 40, alignItems: 'center', marginBottom: 36, width: '100%', shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24 },
+  endTimeLabel: { fontSize: 11, fontWeight: '700', color: C.secondary, letterSpacing: 3, marginBottom: 8, textTransform: 'uppercase' },
+  endTimeValue: { fontSize: 44, fontWeight: '900', color: C.secondary, letterSpacing: 2 },
+  logo : {width:200, height:200, marginBottom:25},
 });

@@ -47,7 +47,7 @@ const belgradeQuestions = [
     title: 'Mission 1 – Belgrade 1920',
     question:
       'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the location and upload your photo.',
-    videos: [require('../../assets/Videos/belg_v1.mov')],
+    videos: [require('../../videos/belg_v1.mov')],
     images: [require('../../assets/images/belg_p1.jpg')],
     answerType: 'text+photo',
     answers: ['delijska česma', 'delijska cesma', 'delijska fountain', 'delijska'],
@@ -56,7 +56,7 @@ const belgradeQuestions = [
     title: 'Mission 2 – Identify the Symbol',
     question:
       'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name to continue.',
-    videos: [require('../../assets/Videos/belg_v2.mov')],
+    videos: [require('../../videos/belg_v2.mov')],
     answerType: 'text',
     answers: [
       'pobednik', 'the victor', 'the winner', 'the conqueror',
@@ -69,7 +69,7 @@ const belgradeQuestions = [
     title: 'Mission 3 – The Tank Mission',
     question:
       'You are standing in front of a military exhibition.\n\nLook carefully at the tanks on display.\n\nHow many tanks are there?\n\nEnter the number to continue.',
-    videos: [require('../../assets/Videos/belg_v3.mov')],
+    videos: [require('../../videos/belg_v3.mov')],
     images: [],
     answerType: 'text',
     answers: ['14', 'fourteen', 'četrnaest', 'четрнаест'],
@@ -78,7 +78,7 @@ const belgradeQuestions = [
     title: 'Mission 4 – The Graffiti Mission',
     question:
       'Somewhere on the streets of Belgrade hides a piece of street art — bold, colourful, unmissable once you know where to look.\n\nFind the graffiti.\n\nWhat is its address?\n\nEnter the address and upload a photo of you standing in front of it.',
-    videos: [require('../../assets/Videos/belg_v4.mov')],
+    videos: [require('../../videos/belg_v4.mov')],
     images: [require('../../assets/images/belg_p4.jpg')],
     answerType: 'text+photo',
     answers: [
@@ -90,7 +90,7 @@ const belgradeQuestions = [
     title: 'Mission 5 – The Poet Mission',
     question:
       "Welcome to Skadarlija — Belgrade's bohemian quarter, where poets, artists and dreamers have gathered for centuries.\n\nWatch the video, then channel your inner poet.\n\nRecord a short video of yourself performing — a poem, a song, a toast — anything that captures the spirit of this magical street.",
-    videos: [require('../../assets/Videos/belg_v5.mov')],
+    videos: [require('../../videos/belg_v5.mov')],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -99,7 +99,7 @@ const belgradeQuestions = [
     title: 'Mission 6 – The Princess Ice Cream',
     question:
       'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.\n\nAvailable flavours: Vanilla, Vanilla & Cherry, Coffee, Caramel, Raspberry, White Chocolate & Strawberry, White Chocolate & Coconut Milk, White Chocolate & Hazelnut, Milk Chocolate & Almond, Two Chocolates, Mascarpone & Blueberry, Pistachio.',
-    videos: [require('../../assets/Videos/belg_v6.mov')],
+    videos: [require('../../videos/belg_v6.mov')],
     images: [],
     answerType: 'text',
     answers: [
@@ -118,7 +118,7 @@ const belgradeQuestions = [
     title: 'Mission 7 – The Macabre Mission',
     question:
       "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.",
-    videos: [require('../../assets/Videos/belg_v7.mov')],
+    videos: [require('../../videos/belg_v7.mov')],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -127,7 +127,7 @@ const belgradeQuestions = [
     title: 'Mission 8 – The Chocolate Mission',
     question:
       'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
-    videos: [require('../../assets/Videos/belg_v8.mov')],
+    videos: [require('../../videos/belg_v8.mov')],
     images: [],
     answerType: 'text',
     answers: [
@@ -140,10 +140,17 @@ const belgradeQuestions = [
     title: 'Mission 9 – The Final Mission',
     question:
       'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\nThen upload a photo of you at this final location.',
-    videos: [require('../../assets/Videos/belg_v9.mov')],
+    videos: [require('../../videos/belg_v9.mov')],
     images: [],
     answerType: 'text+photo',
-    answers: ["אבא דבשמיא יתשקד שמך תתא", "Πάτερ ἡμῶν ὁ ἐν", "Оче наш, који си на", "Pater noster, qui es in", "أبانا الذي في السماوات، ليتقدس", "Отче наш — Сущий на небесах",],
+    answers: [
+      "אבא דבשמיא יתשקד שמך תתא",
+      "Πάτερ ἡμῶν ὁ ἐν",
+      "Оче наш, који си на",
+      "Pater noster, qui es in",
+      "أبانا الذي في السماوات، ليتقدس",
+      "Отче наш — Сущий на небесах",
+    ],
   },
 ];
 

@@ -688,7 +688,7 @@ export default function HomeScreen() {
         <View style={styles.videoFullScreen}>
           <Video
             ref={welcomeVideoRef}
-            source={require('../../assets/Videos/belg_welcome_eng.mov')}
+            source={require('../../videos/belg_welcome_eng.mov')}
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
@@ -773,7 +773,7 @@ export default function HomeScreen() {
             <>
               <Video
                 ref={finishVideoRef}
-                source={require('../../assets/Videos/belg_final_eng.mov')}
+                source={require('../../videos/belg_final_eng.mov')}
                 style={styles.fullScreenVideo}
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay

@@ -37,6 +37,24 @@ const C = {
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
+// ─── Firebase Storage video URLs ─────────────────────────────────────────────
+const BUCKET = 'https://firebasestorage.googleapis.com/v0/b/triptailor-71050.firebasestorage.app/o';
+const videoUrl = (filename) => `${BUCKET}/${encodeURIComponent(filename)}?alt=media`;
+
+const VIDEOS = {
+  welcome:  { uri: videoUrl('belg_welcome_eng.mov') },
+  final:    { uri: videoUrl('belg_final_eng.mov') },
+  belg_v1:  { uri: videoUrl('belg_v1.mov') },
+  belg_v2:  { uri: videoUrl('belg_v2.mov') },
+  belg_v3:  { uri: videoUrl('belg_v3.mov') },
+  belg_v4:  { uri: videoUrl('belg_v4.mov') },
+  belg_v5:  { uri: videoUrl('belg_v5.mov') },
+  belg_v6:  { uri: videoUrl('belg_v6.mov') },
+  belg_v7:  { uri: videoUrl('belg_v7.mov') },
+  belg_v8:  { uri: videoUrl('belg_v8.mov') },
+  belg_v9:  { uri: videoUrl('belg_v9.mov') },
+};
+
 // ─── Question definitions ─────────────────────────────────────────────────────
 // NOTE: Question titles and text are intentionally kept in English here as
 // they are game content (clues/missions), not UI strings. If you want to
@@ -47,7 +65,7 @@ const belgradeQuestions = [
     title: 'Mission 1 – Belgrade 1920',
     question:
       'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the location and upload your photo.',
-    videos: [require('../../videos/belg_v1.mov')],
+    videos: [VIDEOS.belg_v1],
     images: [require('../../assets/images/belg_p1.jpg')],
     answerType: 'text+photo',
     answers: ['delijska česma', 'delijska cesma', 'delijska fountain', 'delijska'],
@@ -56,7 +74,7 @@ const belgradeQuestions = [
     title: 'Mission 2 – Identify the Symbol',
     question:
       'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name to continue.',
-    videos: [require('../../videos/belg_v2.mov')],
+    videos: [VIDEOS.belg_v2],
     answerType: 'text',
     answers: [
       'pobednik', 'the victor', 'the winner', 'the conqueror',
@@ -69,7 +87,7 @@ const belgradeQuestions = [
     title: 'Mission 3 – The Tank Mission',
     question:
       'You are standing in front of a military exhibition.\n\nLook carefully at the tanks on display.\n\nHow many tanks are there?\n\nEnter the number to continue.',
-    videos: [require('../../videos/belg_v3.mov')],
+    videos: [VIDEOS.belg_v3],
     images: [],
     answerType: 'text',
     answers: ['14', 'fourteen', 'četrnaest', 'четрнаест'],
@@ -78,7 +96,7 @@ const belgradeQuestions = [
     title: 'Mission 4 – The Graffiti Mission',
     question:
       'Somewhere on the streets of Belgrade hides a piece of street art — bold, colourful, unmissable once you know where to look.\n\nFind the graffiti.\n\nWhat is its address?\n\nEnter the address and upload a photo of you standing in front of it.',
-    videos: [require('../../videos/belg_v4.mov')],
+    videos: [VIDEOS.belg_v4],
     images: [require('../../assets/images/belg_p4.jpg')],
     answerType: 'text+photo',
     answers: [
@@ -90,7 +108,7 @@ const belgradeQuestions = [
     title: 'Mission 5 – The Poet Mission',
     question:
       "Welcome to Skadarlija — Belgrade's bohemian quarter, where poets, artists and dreamers have gathered for centuries.\n\nWatch the video, then channel your inner poet.\n\nRecord a short video of yourself performing — a poem, a song, a toast — anything that captures the spirit of this magical street.",
-    videos: [require('../../videos/belg_v5.mov')],
+    videos: [VIDEOS.belg_v5],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -99,7 +117,7 @@ const belgradeQuestions = [
     title: 'Mission 6 – The Princess Ice Cream',
     question:
       'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.\n\nAvailable flavours: Vanilla, Vanilla & Cherry, Coffee, Caramel, Raspberry, White Chocolate & Strawberry, White Chocolate & Coconut Milk, White Chocolate & Hazelnut, Milk Chocolate & Almond, Two Chocolates, Mascarpone & Blueberry, Pistachio.',
-    videos: [require('../../videos/belg_v6.mov')],
+    videos: [VIDEOS.belg_v6],
     images: [],
     answerType: 'text',
     answers: [
@@ -118,7 +136,7 @@ const belgradeQuestions = [
     title: 'Mission 7 – The Macabre Mission',
     question:
       "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.",
-    videos: [require('../../videos/belg_v7.mov')],
+    videos: [VIDEOS.belg_v7],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -127,7 +145,7 @@ const belgradeQuestions = [
     title: 'Mission 8 – The Chocolate Mission',
     question:
       'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
-    videos: [require('../../videos/belg_v8.mov')],
+    videos: [VIDEOS.belg_v8],
     images: [],
     answerType: 'text',
     answers: [
@@ -140,7 +158,7 @@ const belgradeQuestions = [
     title: 'Mission 9 – The Final Mission',
     question:
       'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\nThen upload a photo of you at this final location.',
-    videos: [require('../../videos/belg_v9.mov')],
+    videos: [VIDEOS.belg_v9],
     images: [],
     answerType: 'text+photo',
     answers: [
@@ -314,7 +332,7 @@ export default function HomeScreen() {
       }
 
       if (codeData.expired === true) {
-        Alert.alert(t('invalidCode'), t('codeExpired')); // add 'codeExpired' to i18n
+        Alert.alert(t('invalidCode'), t('codeExpired'));
         return;
       }
 
@@ -688,7 +706,7 @@ export default function HomeScreen() {
         <View style={styles.videoFullScreen}>
           <Video
             ref={welcomeVideoRef}
-            source={require('../../videos/belg_welcome_eng.mov')}
+            source={VIDEOS.welcome}
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
@@ -773,7 +791,7 @@ export default function HomeScreen() {
             <>
               <Video
                 ref={finishVideoRef}
-                source={require('../../videos/belg_final_eng.mov')}
+                source={VIDEOS.final}
                 style={styles.fullScreenVideo}
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay
@@ -870,5 +888,5 @@ const styles = StyleSheet.create({
   endTimeCard: { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.secondary, paddingVertical: 20, paddingHorizontal: 40, alignItems: 'center', marginBottom: 36, width: '100%', shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24 },
   endTimeLabel: { fontSize: 11, fontWeight: '700', color: C.secondary, letterSpacing: 3, marginBottom: 8, textTransform: 'uppercase' },
   endTimeValue: { fontSize: 44, fontWeight: '900', color: C.secondary, letterSpacing: 2 },
-  logo : {width:200, height:200, marginBottom:25},
+  logo: { width: 200, height: 200, marginBottom: 25 },
 });

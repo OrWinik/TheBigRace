@@ -4,7 +4,7 @@
     "slug": "TheBigRace",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/LogoT.png",
+    "icon": "./assets/LogoW.png",
     "scheme": "TheBigRace",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/LogoT.png",
+        "foregroundImage": "./assets/LogoW.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -29,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/LogoT.png",
+          "image": "./assets/LogoW.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

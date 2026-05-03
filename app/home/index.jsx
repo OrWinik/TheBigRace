@@ -10,7 +10,9 @@ import {
   Alert,
   AppState,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -42,73 +44,134 @@ const BUCKET = 'https://firebasestorage.googleapis.com/v0/b/triptailor-71050.fir
 const videoUrl = (filename) => `${BUCKET}/${encodeURIComponent(filename)}?alt=media`;
 
 const VIDEOS = {
-  welcome:  { uri: videoUrl('belg_welcome_eng.mov') },
-  final:    { uri: videoUrl('belg_final_eng.mov') },
-  belg_v1:  { uri: videoUrl('belg_v1.mov') },
-  belg_v2:  { uri: videoUrl('belg_v2.mov') },
-  belg_v3:  { uri: videoUrl('belg_v3.mov') },
-  belg_v4:  { uri: videoUrl('belg_v4.mov') },
-  belg_v5:  { uri: videoUrl('belg_v5.mov') },
-  belg_v6:  { uri: videoUrl('belg_v6.mov') },
-  belg_v7:  { uri: videoUrl('belg_v7.mov') },
-  belg_v8:  { uri: videoUrl('belg_v8.mov') },
-  belg_v9:  { uri: videoUrl('belg_v9.mov') },
+  // ── English (original) ──────────────────────────────────────────────────
+  en: {
+    welcome: { uri: videoUrl('belg_welcome_eng.mov') },
+    final: { uri: videoUrl('belg_final_eng.mov') },
+    v1: { uri: videoUrl('belg_v1.mov') },
+    v2: { uri: videoUrl('belg_v2.mov') },
+    v3: { uri: videoUrl('belg_v3.mov') },
+    v4: { uri: videoUrl('belg_v4.mov') },
+    v5: { uri: videoUrl('belg_v5.mov') },
+    v6: { uri: videoUrl('belg_v6.mov') },
+    v7: { uri: videoUrl('belg_v7.mov') },
+    v8: { uri: videoUrl('belg_v8.mov') },
+    v9: { uri: videoUrl('belg_v9.mov') },
+  },
+
+  // ── Hebrew ───────────────────────────────────────────────────────────────
+  he: {
+    welcome: { uri: videoUrl('WeELCOME HEBREW sub v2.0.mp4') },
+    final: { uri: videoUrl('FINAL HEBREW sub.mp4') },
+    v1: { uri: videoUrl('Misija 1 HEBREW sub v2.0.mp4') },
+    v2: { uri: videoUrl('Misija 2 HEBREW sub.mp4') },
+    v3: { uri: videoUrl('Misija 3 HEBREW sub.mp4') },
+    v4: { uri: videoUrl('Misija 4 HEBREW Sub.mp4') },
+    v5: { uri: videoUrl('Misija 5 HEBREW sub.mp4') },
+    v6: { uri: videoUrl('Misija 6 HEBREW sub.mp4') },
+    v7: { uri: videoUrl('Misija 7 HEBREW sub.mp4') },
+    v8: { uri: videoUrl('Misija 8 HEBREW sub.mp4') },
+    v9: { uri: videoUrl('Misija 9 HEBREW sub.mp4') },
+  },
+
+  // ── Serbian ──────────────────────────────────────────────────────────────
+  sr: {
+    welcome: { uri: videoUrl('WELCOME SERBIAN titl.mp4') },
+    final: { uri: videoUrl('FINAL SERBIAN titl.mp4') },
+    v1: { uri: videoUrl('Misija 1 SERBIAN titl.mp4') },
+    v2: { uri: videoUrl('Misija 2 SERBIAN titl.mp4') },
+    v3: { uri: videoUrl('Misija 3 SERBIAN titl.mp4') },
+    v4: { uri: videoUrl('Misija 4 SERBIAN titl.mp4') },
+    v5: { uri: videoUrl('Misija 5 SERBIAN titl 2.mp4') },
+    v6: { uri: videoUrl('Misija 6 SERBIAN titl.mp4') },
+    v7: { uri: videoUrl('Misija 7 SERBIAN titl.mp4') },
+    v8: { uri: videoUrl('Misija 8 SERBIAN titl.mp4') },
+    v9: { uri: videoUrl('Misija 9 SERBIAN titl.mp4') },
+  },
 };
+
+// ─── Helper — pick the right video set for the current language ───────────
+// Falls back to English if a language has no entry
+const getVideos = (language) => VIDEOS[language] ?? VIDEOS.en;
 
 // ─── Question definitions ─────────────────────────────────────────────────────
 // NOTE: Question titles and text are intentionally kept in English here as
 // they are game content (clues/missions), not UI strings. If you want to
 // translate the mission content itself, move these into the i18n file per language.
 
-const belgradeQuestions = [
+const getBelgradeQuestions = (V) => [
   {
     title: 'Mission 1 – Belgrade 1920',
     question:
       'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the location and upload your photo.',
-    videos: [VIDEOS.belg_v1],
+    videos: [V.v1],
     images: [require('../../assets/images/belg_p1.jpg')],
     answerType: 'text+photo',
-    answers: ['delijska česma', 'delijska cesma', 'delijska fountain', 'delijska'],
+    answers: [
+      // English
+      'delijska česma', 'delijska cesma', 'delijska fountain', 'delijska',
+      // Hebrew
+      'מזרקת דליסקה', 'דליסקה', 'דליסקה פאונטיין',
+    ],
   },
   {
     title: 'Mission 2 – Identify the Symbol',
     question:
       'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name to continue.',
-    videos: [VIDEOS.belg_v2],
+    videos: [V.v2],
     answerType: 'text',
     answers: [
+      // English
       'pobednik', 'the victor', 'the winner', 'the conqueror',
       'victor of kalemegdan', 'kalemegdan victor', 'belgrade victor statue',
-      'monument to victory', 'victory statue of belgrade', 'победник',
-      'освајач', 'споменик победе',
+      'monument to victory', 'victory statue of belgrade',
+      // Serbian (Latin)
+      'osvajač',
+      // Serbian (Cyrillic)
+      'победник', 'освајач', 'споменик победе',
+      'победник са калемегдана', 'калемегдански победник',
+      'београдски победник', 'статуа победе у београду',
+      // Hebrew
+      'פובדניק', 'המנצח', 'הזוכה', 'הכובש',
+      'פסל ויקטור של קלמגדן', 'ויקטור קלמגדן',
+      'פסל ויקטור של בלגרד', 'אנדרטת הניצחון',
+      'פסל הניצחון של בלגרד',
     ],
   },
   {
     title: 'Mission 3 – The Tank Mission',
     question:
       'You are standing in front of a military exhibition.\n\nLook carefully at the tanks on display.\n\nHow many tanks are there?\n\nEnter the number to continue.',
-    videos: [VIDEOS.belg_v3],
+    videos: [V.v3],
     images: [],
     answerType: 'text',
-    answers: ['14', 'fourteen', 'četrnaest', 'четрнаест'],
+    answers: [
+      // English / Serbian
+      '14', 'fourteen', 'četrnaest', 'четрнаест',
+      // Hebrew
+      'ארבע עשרה', 'ארבע-עשרה',
+    ],
   },
   {
     title: 'Mission 4 – The Graffiti Mission',
     question:
       'Somewhere on the streets of Belgrade hides a piece of street art — bold, colourful, unmissable once you know where to look.\n\nFind the graffiti.\n\nWhat is its address?\n\nEnter the address and upload a photo of you standing in front of it.',
-    videos: [VIDEOS.belg_v4],
+    videos: [V.v4],
     images: [require('../../assets/images/belg_p4.jpg')],
     answerType: 'text+photo',
     answers: [
+      // English / Serbian
       'karađorđeva 49', 'karadordeva 49', 'karađorđeva49', 'karadordeva49',
       'karadordjeva 49', '49 karađorđeva',
+      // Hebrew
+      'קארדורדבה 49', 'קרדורדבה 49', 'קארדורדבה49', 'קרדורדבה49',
     ],
   },
   {
     title: 'Mission 5 – The Poet Mission',
     question:
       "Welcome to Skadarlija — Belgrade's bohemian quarter, where poets, artists and dreamers have gathered for centuries.\n\nWatch the video, then channel your inner poet.\n\nRecord a short video of yourself performing — a poem, a song, a toast — anything that captures the spirit of this magical street.",
-    videos: [VIDEOS.belg_v5],
+    videos: [V.v5],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -117,26 +180,45 @@ const belgradeQuestions = [
     title: 'Mission 6 – The Princess Ice Cream',
     question:
       'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.\n\nAvailable flavours: Vanilla, Vanilla & Cherry, Coffee, Caramel, Raspberry, White Chocolate & Strawberry, White Chocolate & Coconut Milk, White Chocolate & Hazelnut, Milk Chocolate & Almond, Two Chocolates, Mascarpone & Blueberry, Pistachio.',
-    videos: [VIDEOS.belg_v6],
+    videos: [V.v6],
     images: [],
     answerType: 'text',
     answers: [
-      'vanilla', 'vanila', 'vanilla & cherry', 'vanila & višnja', 'vanilla and cherry',
-      'coffee', 'kafa', 'caramel', 'karamela', 'raspberry', 'malina',
-      'white chocolate & strawberry', 'bela čokolada & jagoda',
-      'white chocolate & coconut milk', 'bela čokolada & kokosovo mleko',
-      'white chocolate & hazelnut', 'bela čokolada & lešnik',
-      'milk chocolate & almond', 'mlečna čokolada & badem',
-      'two chocolates', 'dve čokolade',
-      'mascarpone & blueberry', 'maskarpone & borovnica',
-      'pistachio', 'pistać',
+      // English
+      'vanilla', 'vanilla & cherry', 'vanilla and cherry',
+      'coffee', 'caramel', 'raspberry',
+      'white chocolate & strawberry', 'white chocolate and strawberry',
+      'white chocolate & coconut milk', 'white chocolate and coconut milk',
+      'white chocolate & hazelnut', 'white chocolate and hazelnut',
+      'milk chocolate & almond', 'milk chocolate and almond',
+      'two chocolates', 'mascarpone & blueberry', 'mascarpone and blueberry',
+      'pistachio',
+      // Serbian
+      'vanila', 'vanila & višnja', 'vanila i višnja',
+      'kafa', 'karamela', 'malina',
+      'bela čokolada & jagoda', 'bela čokolada i jagoda',
+      'bela čokolada & kokosovo mleko', 'bela čokolada i kokosovo mleko',
+      'bela čokolada & lešnik', 'bela čokolada i lešnik',
+      'mlečna čokolada & badem', 'mlečna čokolada i badem',
+      'dve čokolade', 'maskarpone & borovnica', 'maskarpone i borovnica',
+      'pistać',
+      // Hebrew
+      'וניל', 'וניל ודובדבן', 'וניל & דובדבן',
+      'קפה', 'קרמל', 'פטל',
+      'שוקולד לבן ותות', 'שוקולד לבן & תות',
+      'שוקולד לבן וחלב קוקוס', 'שוקולד לבן & חלב קוקוס',
+      'שוקולד לבן ואגוז לוז', 'שוקולד לבן & אגוז לוז',
+      'שוקולד חלב ושקד', 'שוקולד חלב & שקד',
+      'שני סוגי שוקולד', 'שני שוקולדים',
+      'מסקרפונה ואוכמניות', 'מסקרפונה & אוכמניות',
+      'פיסטוק',
     ],
   },
   {
     title: 'Mission 7 – The Macabre Mission',
     question:
       "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.",
-    videos: [VIDEOS.belg_v7],
+    videos: [V.v7],
     images: [],
     answerType: 'video_upload',
     answers: [],
@@ -145,20 +227,27 @@ const belgradeQuestions = [
     title: 'Mission 8 – The Chocolate Mission',
     question:
       'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
-    videos: [VIDEOS.belg_v8],
+    videos: [V.v8],
     images: [],
     answerType: 'text',
     answers: [
-      'saint sava', 'saint sava temple', 'hram svetog save',
-      'sveti sava', 'crkva svetog save', 'sava saint',
+      // English
+      'saint sava', 'saint sava temple', 'sava saint',
+      // Serbian
+      'hram svetog save', 'sveti sava', 'crkva svetog save',
+      // Serbian Cyrillic
       'храм светог саве', 'свети сава',
+      // Hebrew
+      'סנט סאבה', 'סינט סאבה',
+      'כנסיית סנט סאבה', 'כנסיית סינט סאבה',
+      'מקדש סנט סאבה', 'מקדש סינט סאבה',
     ],
   },
   {
     title: 'Mission 9 – The Final Mission',
     question:
       'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\nThen upload a photo of you at this final location.',
-    videos: [VIDEOS.belg_v9],
+    videos: [V.v9],
     images: [],
     answerType: 'text+photo',
     answers: [
@@ -174,8 +263,9 @@ const belgradeQuestions = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const { t, isRTL } = useTranslation();
-
+  const { t, isRTL, language } = useTranslation();
+  const V = getVideos(language);
+  const belgradeQuestions = getBelgradeQuestions(V);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -706,7 +796,7 @@ export default function HomeScreen() {
         <View style={styles.videoFullScreen}>
           <Video
             ref={welcomeVideoRef}
-            source={VIDEOS.welcome}
+            source={V.welcome}
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
@@ -731,57 +821,68 @@ export default function HomeScreen() {
 
       {/* ── Game Modal ── */}
       <Modal visible={showGameModal} animationType="slide">
-        <View style={styles.gameContainer}>
-          <View style={[styles.gameHeader, rowStyle]}>
-            <View style={styles.timerContainer}>
-              <Text style={styles.timerLabel}>{t('timerLabel')}</Text>
-              <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <View style={styles.gameContainer}>
+            <View style={[styles.gameHeader, rowStyle]}>
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerLabel}>{t('timerLabel')}</Text>
+                <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+              </View>
+              <TouchableOpacity style={styles.exitButton} onPress={exitGame}>
+                <Text style={styles.exitButtonText}>{t('exit')}</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.exitButton} onPress={exitGame}>
-              <Text style={styles.exitButtonText}>{t('exit')}</Text>
-            </TouchableOpacity>
-          </View>
 
-          <ScrollView style={styles.gameScroll} contentContainerStyle={styles.gameScrollContent}>
-            <Text style={[styles.questionNumber, textAlign]}>
-              {t('missionLabel')} {currentQuestion + 1} / {belgradeQuestions.length}
-            </Text>
-            <Text style={[styles.missionTitle, textAlign]}>
-              {belgradeQuestions[currentQuestion].title}
-            </Text>
+            <ScrollView
+              style={styles.gameScroll}
+              contentContainerStyle={styles.gameScrollContent}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+            >
+              <Text style={[styles.questionNumber, textAlign]}>
+                {t('missionLabel')} {currentQuestion + 1} / {belgradeQuestions.length}
+              </Text>
+              <Text style={[styles.missionTitle, textAlign]}>
+                {belgradeQuestions[currentQuestion].title}
+              </Text>
 
-            {belgradeQuestions[currentQuestion].videos.map((src, i) => (
-              <Video
-                key={i} source={src} style={styles.mediaVideo}
-                useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
-              />
-            ))}
-
-            {belgradeQuestions[currentQuestion].images &&
-              belgradeQuestions[currentQuestion].images.map((src, i) => (
-                <Image key={i} source={src} style={styles.mediaImage} resizeMode="contain" />
+              {belgradeQuestions[currentQuestion].videos.map((src, i) => (
+                <Video
+                  key={i} source={src} style={styles.mediaVideo}
+                  useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
+                />
               ))}
 
-            <Text style={[styles.questionText, textAlign]}>
-              {belgradeQuestions[currentQuestion].question}
-            </Text>
+              {belgradeQuestions[currentQuestion].images &&
+                belgradeQuestions[currentQuestion].images.map((src, i) => (
+                  <Image key={i} source={src} style={styles.mediaImage} resizeMode="contain" />
+                ))}
 
-            {renderAnswerSection(belgradeQuestions[currentQuestion])}
+              <Text style={[styles.questionText, textAlign]}>
+                {belgradeQuestions[currentQuestion].question}
+              </Text>
 
-            {isUploading ? (
-              <View style={styles.uploadingContainer}>
-                <ActivityIndicator size="large" color={C.primary} />
-                <Text style={styles.uploadingText}>{t('savingTelemetry')}</Text>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.primaryButton} onPress={submitAnswer}>
-                <Text style={styles.primaryButtonText}>
-                  {currentQuestion === belgradeQuestions.length - 1 ? t('finishRace') : t('submit')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </ScrollView>
-        </View>
+              {renderAnswerSection(belgradeQuestions[currentQuestion])}
+
+              {isUploading ? (
+                <View style={styles.uploadingContainer}>
+                  <ActivityIndicator size="large" color={C.primary} />
+                  <Text style={styles.uploadingText}>{t('savingTelemetry')}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity style={styles.primaryButton} onPress={submitAnswer}>
+                  <Text style={styles.primaryButtonText}>
+                    {currentQuestion === belgradeQuestions.length - 1 ? t('finishRace') : t('submit')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── End / Finish Video Modal ── */}
@@ -791,7 +892,7 @@ export default function HomeScreen() {
             <>
               <Video
                 ref={finishVideoRef}
-                source={VIDEOS.final}
+                source={V.final}
                 style={styles.fullScreenVideo}
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay

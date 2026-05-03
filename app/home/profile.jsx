@@ -134,11 +134,7 @@ export default function ProfilePage() {
   const handleSignOut = () => router.push('/auth/sign-in');
 
   const handleContactUs = () =>
-    Linking.openURL('https://www.happytail-dogs.com/contact').catch(console.error);
-
-  const handleTermsOfUse = () =>
-    Linking.openURL('https://firebasestorage.googleapis.com/v0/b/happytails-e6683.firebasestorage.app/o/TermsOfUse.PDF?alt=media&token=10ab2721-240e-4256-97d4-ff27ce97b487')
-      .catch(console.error);
+    Linking.openURL('https://belgraderace.com/').catch(console.error);
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -226,10 +222,6 @@ export default function ProfilePage() {
             <Text style={styles.menuChevron}>{isRTL ? '‹' : '›'}</Text>
           </TouchableOpacity>
           <View style={styles.menuDivider} />
-          <TouchableOpacity style={[styles.secondaryRow, rowStyle]} onPress={handleTermsOfUse}>
-            <Text style={[styles.secondaryLabel, isRTL && { textAlign: 'right' }]}>{t('termsOfUse')}</Text>
-            <Text style={styles.menuChevron}>{isRTL ? '‹' : '›'}</Text>
-          </TouchableOpacity>
           <View style={styles.menuDivider} />
           <TouchableOpacity style={[styles.secondaryRow, rowStyle]} onPress={() => setShowDeleteModal(true)}>
             <Text style={[styles.secondaryLabel, { color: C.dangerText }, isRTL && { textAlign: 'right' }]}>

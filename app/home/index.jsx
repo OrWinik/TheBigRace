@@ -107,15 +107,13 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the location and upload your photo.',
         'ברוכים הבאים לבלגרד של לפני יותר ממאה שנה.\n\nעיר בתנופה, בנייה מחודשת אחרי מלחמות, רחובות מלאים בעגלות סוסים, חנויות מסורתיות וקולות של שוק עתיק.\n\nבידיכם נמצאת תמונה נדירה — צילום אותנטי מתחילת המאה ה-20, שצולם ממש כאן — ברחוב קנז מיכאילובה, לב העיר מאז ומעולם.\n\nאבל הזמן שחק הכל: חנויות התחלפו, מבנים שופצו, אנשים נעלמו... ורק מי שמביט בעין חדה יצליח לזהות את מה שנשאר בדיוק כפי שהיה.\n\nמשימתכם פשוטה — אך לא קלה:\nעליכם למצוא את המיקום המדויק בו צולמה התמונה לפני מאה שנה.\nאותו רחוב. אותו זווית. אותה נשמה.\n\nכשתמצאו את הנקודה — רשמו את הכתובת המדויקת וצלמו תמונה.',
-        'Dobrodošli u Beograd od pre više od sto godina.\n\nGrad u usponu, u obnovi nakon ratova, ulice ispunjene zapregama, tradicionalnim radnjama i zvucima starog pijaca.\n\nU vašim rukama je retka fotografija — autentičan snimak s početka 20. veka, napravljen upravo ovde — u ulici Knez Mihailova, večnom srcu grada.\n\nAli vreme je promenilo sve: radnje su se smenjivale, zgrade su obnavljane, ljudi su nestajali… i samo oni sa oštrim okom uspeće da prepoznaju ono što je ostalo potpuno isto.\n\nVaš zadatak: pronađite tačnu lokaciju na kojoj je fotografija snimljena pre sto godina.\nIsta ulica. Isti ugao. Ista duša.\n\nKada pronađete mesto — zapišite tačnu adresu i rekonstruišite fotografiju: isti položaj, ista perspektiva, ista priča.\n\nUnesite adresu i otpremite fotografiju.'
+        'Dobrodošli u Beograd od pre više od sto godina —\ngrad u obnovi nakon ratova,\nsa ulicama punim zaprega, starih radnji i zvukova pijace.\nU vašim rukama je retka fotografija…\nnastala početkom 20. veka u Knez Mihailovoj ulici.\nAli vreme je promenilo sve:\nradnje su nestajale, zgrade su se menjale, ljudi su dolazili i odlazili…\nVaš zadatak je jednostavan, ali ne i lak:\npronađite tačnu lokaciju na kojoj je fotografija snimljena.\nKada je pronađete:\n– zapišite tačnu adresu\n– rekonstruišite fotografiju (isti ugao, ista perspektiva)\n– i snimite današnji Beograd u dijalogu sa prošlošću\nSrećno — istorija vas čeka.'
       ),
       videos: [V.v1],
       images: [require('../../assets/images/belg_p1.jpg')],
       answerType: 'text+photo',
       answers: [
-        // English
         'delijska česma', 'delijska cesma', 'delijska fountain', 'delijska',
-        // Hebrew
         'מזרקת דליסקה', 'דליסקה', 'דליסקה פאונטיין',
       ],
     },
@@ -124,22 +122,18 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name to continue.',
         'עליכם למצוא את הדמות הזאת, לרשום את שמה ולהצטלם איתה — כדי להוכיח שהצלחתם לזהות את אחד הסמלים המשמעותיים של בלגרד.\n\nהוא מחזיק חרב — אך אינו יוצא למלחמה.\nהוא עומד זקוף — אך אינו שייך לאף צבא.\nהוא מביט מערבה — כאילו שומר על העיר ונושם את ההיסטוריה שעברה כאן.\n\nמה שם הפסל?\n\nרשמו את שמו.',
-        'Rešite zagonetku, istražite prostore drevne tvrđave, pronađite ovu figuru i zapišite njeno ime.\n\nU ruci drži mač — ali ne kreće u bitku.\nStoji uspravno — ali ne pripada nijednoj vojsci.\nGleda ka zapadu — kao da čuva grad i diše istoriju koja je ovde ostavila trag.\n\nKako se zove ova statua?\n\nUpišite njeno ime.'
-      ),      
+        'Bravo! Uspeli ste da rešite prvu zagonetku.\nSada ulazite u Kalemegdan — jedno od najvažnijih istorijskih mesta u Beogradu.\nNa visokoj litici, gde se spajaju Sava i Dunav, stoji simbol grada — Pobednik.\nOn nije kralj ni vojnik, već ideja:\npobeda, sloboda i snaga.\nVaš zadatak:\n– pronađite Pobednika\n– zapišite njegovo ime\n– i fotografišite se sa njim\nSrećno!'
+      ),
       videos: [V.v2],
       answerType: 'text',
       answers: [
-        // English
         'pobednik', 'the victor', 'the winner', 'the conqueror',
         'victor of kalemegdan', 'kalemegdan victor', 'belgrade victor statue',
         'monument to victory', 'victory statue of belgrade',
-        // Serbian (Latin)
         'osvajač',
-        // Serbian (Cyrillic)
         'победник', 'освајач', 'споменик победе',
         'победник са калемегдана', 'калемегдански победник',
         'београдски победник', 'статуа победе у београду',
-        // Hebrew
         'פובדניק', 'המנצח', 'הזוכה', 'הכובש',
         'פסל ויקטור של קלמגדן', 'ויקטור קלמגדן',
         'פסל ויקטור של בלגרד', 'אנדרטת הניצחון',
@@ -151,15 +145,13 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'You are standing in front of a military exhibition.\n\nLook carefully at the tanks on display.\n\nHow many tanks are there?\n\nEnter the number to continue.',
         'אתם עומדים מול תצוגה צבאית.\n\nהביטו בקפידה בטנקים המוצגים.\n\nכמה טנקים יש?\n\nהזינו את המספר.',
-        'Nalazite se ispred vojne postavke unutar tvrđave.\n\nPažljivo pogledajte tenkove na izložbi.\n\nKoliko tenkova ima?\n\nUnesite broj.'
+        'Odlično! Nastavljate dalje.\nNalazite se u jednoj od najstarijih tvrđava u Evropi.\nVaš sledeći zadatak:\n– istražite vojnu postavku\n– i izbrojte koliko tenkova se nalazi u prostoru\nPažljivo posmatrajte — detalji su ključ.\nIstorija vas zove.'
       ),
       videos: [V.v3],
       images: [],
       answerType: 'text',
       answers: [
-        // English / Serbian
         '14', 'fourteen', 'četrnaest', 'четрнаест',
-        // Hebrew
         'ארבע עשרה', 'ארבע-עשרה',
       ],
     },
@@ -168,16 +160,14 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'Somewhere on the streets of Belgrade hides a piece of street art — bold, colourful, unmissable once you know where to look.\n\nFind the graffiti.\n\nWhat is its address?\n\nEnter the address and upload a photo of you standing in front of it.',
         'איפשהו ברחובות בלגרד מסתתרת יצירת רחוב — נועזת, צבעונית, בלתי נשכחת.\n\nמצאו את הגרפיטי.\n\nמה הכתובת שלו?\n\nהזינו את הכתובת המדויקת והעלו תמונה שלכם מולו.',
-        'Negde na ulicama Beograda krije se jedan od ikona koje smo posebno odabrali za vas.\n\nPronađite grafiti i utvrdite njegovu tačnu adresu.\n\nUnesite adresu i otpremite fotografiju.'
+        'Beograd nije samo istorija — on je i umetnost.\nGrafiti ovde nisu samo crteži, već priče, emocije i protesti.\nVaš zadatak:\n– pronađite zadati grafit\n– i utvrdite njegovu tačnu lokaciju\nBudite pažljivi i koristite sve što imate — čak i pomoć lokalaca.'
       ),
       videos: [V.v4],
       images: [require('../../assets/images/belg_p4.jpg')],
       answerType: 'text+photo',
       answers: [
-        // English / Serbian
         'karađorđeva 49', 'karadordeva 49', 'karađorđeva49', 'karadordeva49',
         'karadordjeva 49', '49 karađorđeva',
-        // Hebrew
         'קארדורדבה 49', 'קרדורדבה 49', 'קארדורדבה49', 'קרדורדבה49',
       ],
     },
@@ -186,7 +176,7 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         "Welcome to Skadarlija — Belgrade's bohemian quarter, where poets, artists and dreamers have gathered for centuries.\n\nWatch the video, then channel your inner poet.\n\nRecord a short video of yourself performing — a poem, a song, a toast — anything that captures the spirit of this magical street.",
         'ברוכים הבאים לסקדרליה — הרחוב הבוהמי המפורסם של בלגרד.\n\nכשתגיעו לפסל של יאקשיץ׳, עליכם לגייס תושב מקומי — כן, תושב בלגרד אמיתי — להצטלם איתכם ליד הפסל ולצטט אחת מהלשוניות הקסומות שלנו בעברית:\n\n"גנן גידל דגן בגן דגן גדל בגן גנן..."\nאו\n"שרה שרה שיר שרה שמח שיר שמח שרה..."\n\nשימו לב: חובה לומר את המשפט ברציפות!\n\nרשמו סרטון והעלו אותו.',
-        'Dobrodošli u Skadarliju — čuvenu boemsku ulicu Beograda.\n\nKada stignete do Jakšićevog spomenika, potrebno je da pronađete lokalca i zamolite ga da se fotografiše sa vama i da izgovori sledeću brzalicu:\n\n"Četiri čavčića na čunčiću čuče."\n\nVažno: mora se izgovoriti u jednom dahu, bez greške!\n\nSnimite video i otpremite ga.'
+        'Dobrodošli u Skadarliju — boemsku ulicu Beograda.\nOvde su živeli pesnici, umetnici i sanjari.\nU srcu ulice nalazi se spomenik Đuri Jakšiću — pesniku i slikaru.\nVaš zadatak:\n– pronađite spomenik\n– i zamolite lokalca da izgovori brzalicu:\n„Četiri čavčića na čunčiću čuče."\nMora bez greške.'
       ),
       videos: [V.v5],
       images: [],
@@ -198,13 +188,12 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.\n\nAvailable flavours: Vanilla, Vanilla & Cherry, Coffee, Caramel, Raspberry, White Chocolate & Strawberry, White Chocolate & Coconut Milk, White Chocolate & Hazelnut, Milk Chocolate & Almond, Two Chocolates, Mascarpone & Blueberry, Pistachio.',
         'הגיעו ל-Republic Square ומצאו את נסיכת הפחזניות.\n\nכשתמצאו אותה, רשמו באפליקציה את הטעם האהוב עליכם שהנסיכה מציעה.\n\nטעמים זמינים: וניל, וניל ודובדבן, קפה, קרמל, פטל, שוקולד לבן ותות, שוקולד לבן וחלב קוקוס, שוקולד לבן ואגוז לוז, שוקולד חלב ושקד, שני סוגי שוקולד, מסקרפונה ואוכמניות, פיסטוק.',
-        'Vaš cilj je da stignete na Trg republike i pronađete Princezu profiterola.\n\nKada je pronađete, unesite u aplikaciju koji je vaš omiljeni ukus koji princeza nudi.\n\nDostupni ukusi: Vanila, Vanila & Višnja, Kafa, Karamela, Malina, Bela čokolada & Jagoda, Bela čokolada & Kokosovo mleko, Bela čokolada & Lešnik, Mlečna čokolada & Badem, Dve čokolade, Maskarpone & Borovnica, Pistać.'
+        'Sledeći cilj je Trg republike.\nVaš zadatak:\n– pronađite Princezu profiterola\n– i izaberite omiljeni ukus\nSlobodno se nagradite — trka postaje sve slađa.'
       ),
       videos: [V.v6],
       images: [],
       answerType: 'text',
       answers: [
-        // English
         'vanilla', 'vanilla & cherry', 'vanilla and cherry',
         'coffee', 'caramel', 'raspberry',
         'white chocolate & strawberry', 'white chocolate and strawberry',
@@ -213,7 +202,6 @@ const getBelgradeQuestions = (V, language) => {
         'milk chocolate & almond', 'milk chocolate and almond',
         'two chocolates', 'mascarpone & blueberry', 'mascarpone and blueberry',
         'pistachio',
-        // Serbian
         'vanila', 'vanila & višnja', 'vanila i višnja',
         'kafa', 'karamela', 'malina',
         'bela čokolada & jagoda', 'bela čokolada i jagoda',
@@ -222,7 +210,6 @@ const getBelgradeQuestions = (V, language) => {
         'mlečna čokolada & badem', 'mlečna čokolada i badem',
         'dve čokolade', 'maskarpone & borovnica', 'maskarpone i borovnica',
         'pistać',
-        // Hebrew
         'וניל', 'וניל ודובדבן', 'וניל & דובדבן',
         'קפה', 'קרמל', 'פטל',
         'שוקולד לבן ותות', 'שוקולד לבן & תות',
@@ -239,7 +226,7 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.",
         'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות חצי דקה\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.',
-        'U samom srcu Beograda izvedite ples Macarena!\n\nVaš zadatak:\n• Izvedite ples Macarena\n• Vi i još četiri lokalne osobe — ili jedan od vas snima, a vi plešete sa još petoro\n• U trajanju od najmanje 30 sekundi\n• I sve mora biti snimljeno!\n\nSnimite video i otpremite ga.'
+        'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od minimum 30 sekundi\nPretvorite ulicu u scenu.'
       ),
       videos: [V.v7],
       images: [],
@@ -251,19 +238,15 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
         'הגעתם ל-San Marina, אחת מחנויות השוקולד הידועות בעיר.\n\nבין כל המדפים מסתתר שוקולד אחד שינחה אתכם ליעד הבא.\n\nאם החנות סגורה? פשוט עמדו מול הויטרינה, מצאו את השוקולד הנכון וגלו לאן הדרך ממשיכה.\n\nכתבו את שם המיקום הבא.',
-        'Stigli ste do San Marine, jedne od najpoznatijih čokoladžinica u gradu.\n\nMeđu svim policama krije se jedna posebna čokolada — ona koja će vas usmeriti ka sledećoj destinaciji.\n\nAko je radnja zatvorena? Jednostavno stanite ispred izloga, pronađite pravu čokoladu i otkrijte gde vas put vodi dalje.\n\nUpišite naziv sledeće lokacije.'
+        'Vaša sledeća stanica je San Marina.\nVaš zadatak:\n– pronađite posebnu čokoladu\n– ona će vas voditi dalje u igri\nAko je radnja zatvorena — pronađite je u izlogu.'
       ),
       videos: [V.v8],
       images: [],
       answerType: 'text',
       answers: [
-        // English
         'saint sava', 'saint sava temple', 'sava saint',
-        // Serbian
         'hram svetog save', 'sveti sava', 'crkva svetog save',
-        // Serbian Cyrillic
         'храм светог саве', 'свети сава',
-        // Hebrew
         'סנט סאבה', 'סינט סאבה',
         'כנסיית סנט סאבה', 'כנסיית סינט סאבה',
         'מקדש סנט סאבה', 'מקדש סינט סאבה',
@@ -274,7 +257,7 @@ const getBelgradeQuestions = (V, language) => {
       question: q(
         'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\nThen upload a photo of you at this final location.',
         'הגעתם לנקודת הסיום של המירוץ — כנסיית סנט סאבה.\n\nבמקום הקדוש ביותר בעיר, שפה עתיקה מופיעה במקום שאיש אינו מצפה לראותה. לא על קיר, לא על ספר, לא על מזבח — אלא על השער: שער שבו כל השפות כתובות בריבועים, שער שנפתח אל מול שמיים לבנים.\n\nמצאו את המילים הכתובות שם, רשמו אותן — ולאחר מכן העלו תמונה שלכם במיקום הסופי הזה.',
-        'Stigli ste do finala trke — Hrama Svetog Save.\n\nNa najsvetijem mestu u gradu, drevni jezik se pojavljuje tamo gde ga niko ne očekuje. Ne na zidu, ne u knjizi, ne na oltaru — već na kapiji: kapiji na kojoj su svi jezici ispisani u kvadratima, kapiji koja se otvara ka belom nebu.\n\nPronađite te reči, prijavite ih u aplikaciji — i otpremite fotografiju sa ove finalne lokacije.'
+        'Poslednja stanica.\nVaš zadatak:\n– pronađite skriveni natpis na kapiji\n– unesite ga u aplikaciju\nOvo je ključ završetka trke.'
       ),
       videos: [V.v9],
       images: [],

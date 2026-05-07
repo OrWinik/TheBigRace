@@ -4,6 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { get, getDatabase, push, ref, set } from 'firebase/database';
+import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -186,8 +187,8 @@ const getBelgradeQuestions = (V, language) => {
     {
       title: 'Mission 6 – The Princess Ice Cream',
       question: q(
-        'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.\n\nAvailable flavours: Vanilla, Vanilla & Cherry, Coffee, Caramel, Raspberry, White Chocolate & Strawberry, White Chocolate & Coconut Milk, White Chocolate & Hazelnut, Milk Chocolate & Almond, Two Chocolates, Mascarpone & Blueberry, Pistachio.',
-        'הגיעו ל-Republic Square ומצאו את נסיכת הפחזניות.\n\nכשתמצאו אותה, רשמו באפליקציה את הטעם האהוב עליכם שהנסיכה מציעה.\n\nטעמים זמינים: וניל, וניל ודובדבן, קפה, קרמל, פטל, שוקולד לבן ותות, שוקולד לבן וחלב קוקוס, שוקולד לבן ואגוז לוז, שוקולד חלב ושקד, שני סוגי שוקולד, מסקרפונה ואוכמניות, פיסטוק.',
+        'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.',
+        'הגיעו ל-Republic Square ומצאו את נסיכת הפחזניות.\n\nכשתמצאו אותה, רשמו באפליקציה את הטעם האהוב עליכם שהנסיכה מציעה.',
         'Sledeći cilj je Trg republike.\nVaš zadatak:\n– pronađite Princezu profiterola\n– i izaberite omiljeni ukus\nSlobodno se nagradite — trka postaje sve slađa.'
       ),
       videos: [V.v6],
@@ -588,8 +589,19 @@ export default function HomeScreen() {
   };
 
   const saveFileToDatabase = async (uri, dbPath) => {
-    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
-    await set(ref(db, dbPath), base64);
+    const isVideo = uri.includes('video') || uri.endsWith('.mp4') || uri.endsWith('.mov');
+    if (isVideo) {
+      const storage = getStorage();
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const sRef = storageRef(storage, `${dbPath}.mp4`);
+      await uploadBytes(sRef, blob);
+      const downloadUrl = await getDownloadURL(sRef);
+      await set(ref(db, dbPath), downloadUrl);
+    } else {
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+      await set(ref(db, dbPath), base64);
+    }
   };
 
   const resetAnswerState = () => {

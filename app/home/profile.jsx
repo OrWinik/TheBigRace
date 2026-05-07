@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { deleteUser, getAuth } from 'firebase/auth';
 import { get, getDatabase, ref, set } from 'firebase/database';
+import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -19,23 +20,23 @@ import { useTranslation } from '../../i18n';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
-  base:          '#060e20',
-  surfaceLow:    '#091328',
-  surfaceHigh:   '#192540',
+  base: '#060e20',
+  surfaceLow: '#091328',
+  surfaceHigh: '#192540',
   surfaceBright: '#1f2b49',
-  outline:       '#40485d',
-  primary:       '#85adff',
-  secondary:     '#69f6b8',
-  danger:        '#7f1d1d',
-  dangerText:    '#f87171',
-  onSurface:     '#dee5ff',
-  onVariant:     '#a3aac4',
+  outline: '#40485d',
+  primary: '#85adff',
+  secondary: '#69f6b8',
+  danger: '#7f1d1d',
+  dangerText: '#f87171',
+  onSurface: '#dee5ff',
+  onVariant: '#a3aac4',
 };
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'he', label: 'עברית',   flag: '🇮🇱' },
-  { code: 'sr', label: 'Srpski',  flag: '🇷🇸' },
+  { code: 'he', label: 'עברית', flag: '🇮🇱' },
+  { code: 'sr', label: 'Srpski', flag: '🇷🇸' },
 ];
 
 const formatTime = (seconds) => {
@@ -54,19 +55,19 @@ const formatDate = (timestamp) => {
 export default function ProfilePage() {
   const { t, language, setLanguage, isRTL } = useTranslation();
 
-  const [email, setEmail]               = useState('');
-  const [username, setUsername]         = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState(null);
-  const [results, setResults]           = useState([]);
+  const [results, setResults] = useState([]);
 
-  const [showHistory, setShowHistory]         = useState(false);
-  const [showSettings, setShowSettings]       = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const router = useRouter();
-  const auth   = getAuth();
-  const user   = auth.currentUser;
-  const db     = getDatabase();
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const db = getDatabase();
 
   // RTL style helper — flips row direction for Hebrew
   const rowStyle = isRTL ? { flexDirection: 'row-reverse' } : {};
@@ -81,9 +82,9 @@ export default function ProfilePage() {
           get(ref(db, `users/${user.uid}/profileImage`)),
           get(ref(db, `users/${user.uid}/results`)),
         ]);
-        if (emailSnap.exists())    setEmail(emailSnap.val());
+        if (emailSnap.exists()) setEmail(emailSnap.val());
         if (usernameSnap.exists()) setUsername(usernameSnap.val());
-        if (imageSnap.exists())    setProfileImage(imageSnap.val());
+        if (imageSnap.exists()) setProfileImage(imageSnap.val());
         if (resultsSnap.exists()) {
           const raw = resultsSnap.val();
           const list = Object.values(raw).sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
@@ -98,7 +99,7 @@ export default function ProfilePage() {
 
   // ── Derived stats ───────────────────────────────────────────────────────────
   const totalRaces = results.length;
-  const bestTime   = results.length > 0
+  const bestTime = results.length > 0
     ? Math.min(...results.map(r => r.time).filter(t => typeof t === 'number'))
     : null;
 
@@ -113,20 +114,25 @@ export default function ProfilePage() {
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.2,
-      base64: true,
+      quality: 0.5,
       maxWidth: 300,
       maxHeight: 300,
     });
-    if (!result.canceled && result.assets?.[0]?.base64) {
-      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-      const sizeInMB = (base64Image.length * 3) / 4 / 1024 / 1024;
-      if (sizeInMB > 4) {
-        Alert.alert(t('imageTooLarge'), t('imageTooLargeMsg'));
-        return;
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      try {
+        const uri = result.assets[0].uri;
+        const storage = getStorage();
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const sRef = storageRef(storage, `users/${user.uid}/profileImage.jpg`);
+        await uploadBytes(sRef, blob);
+        const downloadUrl = await getDownloadURL(sRef);
+        await set(ref(db, `users/${user.uid}/profileImage`), downloadUrl);
+        setProfileImage(downloadUrl);
+      } catch (e) {
+        console.error('Profile image upload error:', e);
+        Alert.alert(t('error'), t('uploadFailedMsg'));
       }
-      await set(ref(db, `users/${user.uid}/profileImage`), base64Image);
-      setProfileImage(base64Image);
     }
   };
 
@@ -350,63 +356,63 @@ export default function ProfilePage() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: C.base },
-  scroll:           { flex: 1 },
-  scrollContent:    { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 48 },
+  container: { flex: 1, backgroundColor: C.base },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 48 },
 
-  avatarBlock:      { alignItems: 'center', marginBottom: 36 },
-  avatarWrapper:    { position: 'relative', marginBottom: 16 },
-  avatar:           { width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: C.primary },
-  avatarPlaceholder:{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: C.primary, backgroundColor: C.surfaceHigh, alignItems: 'center', justifyContent: 'center' },
+  avatarBlock: { alignItems: 'center', marginBottom: 36 },
+  avatarWrapper: { position: 'relative', marginBottom: 16 },
+  avatar: { width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: C.primary },
+  avatarPlaceholder: { width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: C.primary, backgroundColor: C.surfaceHigh, alignItems: 'center', justifyContent: 'center' },
   avatarPlaceholderText: { fontSize: 36, fontWeight: '800', color: C.primary },
-  editBadge:        { position: 'absolute', bottom: -8, right: -8, backgroundColor: C.primary, width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  editBadgeIcon:    { fontSize: 13, color: C.base },
-  usernameText:     { fontSize: 24, fontWeight: '900', color: C.onSurface, letterSpacing: 2, marginBottom: 4 },
-  emailText:        { fontSize: 12, color: C.onVariant, letterSpacing: 2 },
+  editBadge: { position: 'absolute', bottom: -8, right: -8, backgroundColor: C.primary, width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  editBadgeIcon: { fontSize: 13, color: C.base },
+  usernameText: { fontSize: 24, fontWeight: '900', color: C.onSurface, letterSpacing: 2, marginBottom: 4 },
+  emailText: { fontSize: 12, color: C.onVariant, letterSpacing: 2 },
 
-  statsBlock:       { gap: 12, marginBottom: 36 },
-  statCard:         { flexDirection: 'row', backgroundColor: C.surfaceLow, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.surfaceHigh },
-  statAccentBlue:   { width: 4, backgroundColor: C.primary },
-  statAccentGreen:  { width: 4, backgroundColor: C.secondary },
-  statContent:      { padding: 20 },
-  statLabel:        { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 },
-  statValue:        { fontSize: 36, fontWeight: '900', color: C.onSurface, letterSpacing: 1 },
+  statsBlock: { gap: 12, marginBottom: 36 },
+  statCard: { flexDirection: 'row', backgroundColor: C.surfaceLow, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.surfaceHigh },
+  statAccentBlue: { width: 4, backgroundColor: C.primary },
+  statAccentGreen: { width: 4, backgroundColor: C.secondary },
+  statContent: { padding: 20 },
+  statLabel: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 },
+  statValue: { fontSize: 36, fontWeight: '900', color: C.onSurface, letterSpacing: 1 },
 
-  sectionLabel:     { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12 },
 
-  secondaryBlock:   { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.surfaceHigh, marginBottom: 24, overflow: 'hidden' },
-  secondaryRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20 },
-  secondaryLabel:   { flex: 1, fontSize: 15, color: C.onVariant, fontWeight: '500' },
-  menuChevron:      { fontSize: 20, color: C.onVariant },
-  menuDivider:      { height: 1, backgroundColor: C.surfaceHigh, marginLeft: 20 },
+  secondaryBlock: { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.surfaceHigh, marginBottom: 24, overflow: 'hidden' },
+  secondaryRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20 },
+  secondaryLabel: { flex: 1, fontSize: 15, color: C.onVariant, fontWeight: '500' },
+  menuChevron: { fontSize: 20, color: C.onVariant },
+  menuDivider: { height: 1, backgroundColor: C.surfaceHigh, marginLeft: 20 },
 
-  signOutButton:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: C.danger, borderRadius: 8, paddingVertical: 18, borderWidth: 1, borderColor: C.dangerText },
-  signOutIcon:      { fontSize: 18, color: C.dangerText, fontWeight: '700' },
-  signOutText:      { fontSize: 15, fontWeight: '800', color: C.dangerText, letterSpacing: 3, textTransform: 'uppercase' },
+  signOutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: C.danger, borderRadius: 8, paddingVertical: 18, borderWidth: 1, borderColor: C.dangerText },
+  signOutIcon: { fontSize: 18, color: C.dangerText, fontWeight: '700' },
+  signOutText: { fontSize: 15, fontWeight: '800', color: C.dangerText, letterSpacing: 3, textTransform: 'uppercase' },
 
-  modalOverlay:     { flex: 1, backgroundColor: 'rgba(6,14,32,0.88)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard:        { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, borderWidth: 1, borderColor: C.surfaceHigh, padding: 24, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.12, shadowRadius: 32, elevation: 12 },
-  modalHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle:       { fontSize: 16, fontWeight: '800', color: C.onSurface, letterSpacing: 3 },
-  modalClose:       { fontSize: 18, color: C.onVariant, fontWeight: '700' },
-  emptyText:        { color: C.onVariant, fontSize: 14, textAlign: 'center', paddingVertical: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(6,14,32,0.88)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, borderWidth: 1, borderColor: C.surfaceHigh, padding: 24, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.12, shadowRadius: 32, elevation: 12 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: C.onSurface, letterSpacing: 3 },
+  modalClose: { fontSize: 18, color: C.onVariant, fontWeight: '700' },
+  emptyText: { color: C.onVariant, fontSize: 14, textAlign: 'center', paddingVertical: 20 },
 
-  historyList:      { maxHeight: 360 },
-  historyRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh },
-  historyCity:      { fontSize: 13, fontWeight: '700', color: C.onSurface, letterSpacing: 1 },
-  historyDate:      { fontSize: 11, color: C.onVariant, marginTop: 2, letterSpacing: 1 },
-  historyTime:      { fontSize: 16, fontWeight: '800', color: C.primary, letterSpacing: 1 },
+  historyList: { maxHeight: 360 },
+  historyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh },
+  historyCity: { fontSize: 13, fontWeight: '700', color: C.onSurface, letterSpacing: 1 },
+  historyDate: { fontSize: 11, color: C.onVariant, marginTop: 2, letterSpacing: 1 },
+  historyTime: { fontSize: 16, fontWeight: '800', color: C.primary, letterSpacing: 1 },
 
-  langRow:          { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh, borderRadius: 4 },
-  langRowActive:    { backgroundColor: C.surfaceHigh },
-  langFlag:         { fontSize: 22, marginRight: 14 },
-  langLabel:        { flex: 1, fontSize: 16, color: C.onVariant, fontWeight: '500' },
-  langLabelActive:  { color: C.secondary, fontWeight: '700' },
-  langCheck:        { fontSize: 18, color: C.secondary, fontWeight: '700' },
+  langRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.surfaceHigh, borderRadius: 4 },
+  langRowActive: { backgroundColor: C.surfaceHigh },
+  langFlag: { fontSize: 22, marginRight: 14 },
+  langLabel: { flex: 1, fontSize: 16, color: C.onVariant, fontWeight: '500' },
+  langLabelActive: { color: C.secondary, fontWeight: '700' },
+  langCheck: { fontSize: 18, color: C.secondary, fontWeight: '700' },
 
-  deleteWarning:    { fontSize: 14, color: C.onVariant, lineHeight: 22, marginBottom: 24 },
+  deleteWarning: { fontSize: 14, color: C.onVariant, lineHeight: 22, marginBottom: 24 },
   deleteConfirmButton: { backgroundColor: C.danger, borderWidth: 1, borderColor: C.dangerText, paddingVertical: 16, borderRadius: 6, alignItems: 'center', marginBottom: 12 },
-  deleteConfirmText:{ color: C.dangerText, fontSize: 13, fontWeight: '800', letterSpacing: 2 },
-  cancelButton:     { paddingVertical: 14, borderRadius: 6, alignItems: 'center', borderWidth: 1, borderColor: C.outline },
+  deleteConfirmText: { color: C.dangerText, fontSize: 13, fontWeight: '800', letterSpacing: 2 },
+  cancelButton: { paddingVertical: 14, borderRadius: 6, alignItems: 'center', borderWidth: 1, borderColor: C.outline },
   cancelButtonText: { color: C.onVariant, fontSize: 14, fontWeight: '600' },
 });

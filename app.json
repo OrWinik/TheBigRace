@@ -14,7 +14,8 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "The Big Race uses your camera to capture mission photos and videos required to complete race challenges, and to set your profile picture.",
-        "NSMicrophoneUsageDescription": "The Big Race uses your microphone to record short videos during race challenges that require video submissions."
+        "NSMicrophoneUsageDescription": "The Big Race uses your microphone to record short videos during race challenges that require video submissions.",
+        "NSPhotoLibraryUsageDescription": "The Big Race uses your photo library to let you upload existing photos for mission submissions and to set your profile picture from your camera roll."
       }
     },
     "android": {

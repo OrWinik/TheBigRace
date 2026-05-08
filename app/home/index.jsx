@@ -592,12 +592,23 @@ export default function HomeScreen() {
     const isVideo = uri.includes('video') || uri.endsWith('.mp4') || uri.endsWith('.mov');
     if (isVideo) {
       const storage = getStorage();
-      const response = await fetch(uri);
-      const blob = await response.blob();
       const sRef = storageRef(storage, `${dbPath}.mp4`);
-      await uploadBytes(sRef, blob);
+  
+      // ✅ Works in production — fetch() does NOT work with file:// in prod builds
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  
+      const byteCharacters = atob(base64);
+      const byteArray = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArray[i] = byteCharacters.charCodeAt(i);
+      }
+  
+      await uploadBytes(sRef, byteArray, { contentType: 'video/mp4' });
       const downloadUrl = await getDownloadURL(sRef);
       await set(ref(db, dbPath), downloadUrl);
+  
     } else {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
       await set(ref(db, dbPath), base64);

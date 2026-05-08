@@ -4,7 +4,6 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { get, getDatabase, push, ref, set } from 'firebase/database';
-import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -591,24 +590,34 @@ export default function HomeScreen() {
   const saveFileToDatabase = async (uri, dbPath) => {
     const isVideo = uri.includes('video') || uri.endsWith('.mp4') || uri.endsWith('.mov');
     if (isVideo) {
-      const storage = getStorage();
-      const sRef = storageRef(storage, `${dbPath}.mp4`);
-  
-      // ✅ Works in production — fetch() does NOT work with file:// in prod builds
+      // Upload via REST API — Firebase Storage SDK uses Blob internally which
+      // is not supported in React Native production builds
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-  
-      const byteCharacters = atob(base64);
-      const byteArray = new Uint8Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteArray[i] = byteCharacters.charCodeAt(i);
-      }
-  
-      await uploadBytes(sRef, byteArray, { contentType: 'video/mp4' });
-      const downloadUrl = await getDownloadURL(sRef);
+
+      const storagePath = encodeURIComponent(`${dbPath}.mp4`);
+      const bucket = 'triptailor-71050.firebasestorage.app';
+      const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${storagePath}`;
+
+      const { getAuth: getAuthInstance } = await import('firebase/auth');
+      const token = await getAuthInstance().currentUser?.getIdToken();
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'video/mp4',
+          'Authorization': `Firebase ${token}`,
+          'Content-Transfer-Encoding': 'base64',
+        },
+        body: base64,
+      });
+
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+      const json = await response.json();
+      const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${storagePath}?alt=media&token=${json.downloadTokens}`;
       await set(ref(db, dbPath), downloadUrl);
-  
+
     } else {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
       await set(ref(db, dbPath), base64);
@@ -639,8 +648,8 @@ export default function HomeScreen() {
     try {
       const qNum = currentQuestion + 1;
       const basePath = `users/${user.uid}/results/answers/q${qNum}`;
-      if (photoUri) await saveFileToDatabase(photoUri, `${basePath}/picture`);
-      if (videoUri) await saveFileToDatabase(videoUri, `${basePath}/video`);
+      if (photoUri) await saveFileToDatabase(photoUri, `${basePath}/picture`).catch(e => console.warn('Photo upload failed silently:', e));
+      if (videoUri) await saveFileToDatabase(videoUri, `${basePath}/video`).catch(e => console.warn('Video upload failed silently:', e));
       if (currentQuestion === belgradeQuestions.length - 1) {
         const stopped = elapsedTime;
         setFinalTime(stopped);

@@ -224,9 +224,9 @@ const getBelgradeQuestions = (V, language) => {
     {
       title: 'Mission 7 – The Macabre Mission',
       question: q(
-        "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.",
-        'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות חצי דקה\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.',
-        'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od minimum 30 sekundi\nPretvorite ulicu u scenu.'
+        "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.\n\n* Video must be under 30 seconds.",
+        'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות חצי דקה\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.\n\n* הסרטון חייב להיות עד 30 שניות.',
+        'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od minimum 30 sekundi\nPretvorite ulicu u scenu.\n\n* Video mora biti kraći od 30 sekundi.'
       ),
       videos: [V.v7],
       images: [],
@@ -255,20 +255,18 @@ const getBelgradeQuestions = (V, language) => {
     {
       title: 'Mission 9 – The Final Mission',
       question: q(
-        'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\nThen upload a photo of you at this final location.',
-        'הגעתם לנקודת הסיום של המירוץ — כנסיית סנט סאבה.\n\nבמקום הקדוש ביותר בעיר, שפה עתיקה מופיעה במקום שאיש אינו מצפה לראותה. לא על קיר, לא על ספר, לא על מזבח — אלא על השער: שער שבו כל השפות כתובות בריבועים, שער שנפתח אל מול שמיים לבנים.\n\nמצאו את המילים הכתובות שם, רשמו אותן — ולאחר מכן העלו תמונה שלכם במיקום הסופי הזה.',
-        'Poslednja stanica.\nVaš zadatak:\n– pronađite skriveni natpis na kapiji\n– unesite ga u aplikaciju\nOvo je ključ završetka trke.'
+        'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\n* Enter only the first line of the inscription.\n\nThen upload a photo of you at this final location.',
+        'הגעתם לנקודת הסיום של המירוץ — כנסיית סנט סאבה.\n\nבמקום הקדוש ביותר בעיר, שפה עתיקה מופיעה במקום שאיש אינו מצפה לראותה. לא על קיר, לא על ספר, לא על מזבח — אלא על השער: שער שבו כל השפות כתובות בריבועים, שער שנפתח אל מול שמיים לבנים.\n\nמצאו את המילים הכתובות שם, רשמו אותן.\n\n* יש להזין את השורה הראשונה בלבד של הכיתוב.\n\nלאחר מכן העלו תמונה שלכם במיקום הסופי הזה.',
+        'Poslednja stanica.\nVaš zadatak:\n– pronađite skriveni natpis na kapiji\n– unesite ga u aplikaciju\n\n* Unesite samo prvi red natpisa.\n\nOvo je ključ završetka trke.'
       ),
       videos: [V.v9],
       images: [],
       answerType: 'text+photo',
       answers: [
-        "אבא דבשמיא יתשקד שמך תתא",
-        "Πάτερ ἡμῶν ὁ ἐν",
-        "Оче наш, који си на",
-        "Pater noster, qui es in",
-        "أبانا الذي في السماوات، ليتقدس",
-        "Отче наш — Сущий на небесах",
+        "אבונא די בשמיא יתקדש",
+        "PATER NOSTER QUI",
+        "ОЧЕ НАШ КОЈИ СИ",
+        "ОТЧЕ НАШЪ  ИЖЕ ЕСИ НА",
       ],
     },
   ];
@@ -845,6 +843,7 @@ export default function HomeScreen() {
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
+            useNativeControls
             onPlaybackStatusUpdate={(status) => {
               if (status.isLoaded && status.didJustFinish) handleWelcomeVideoEnd();
             }}
@@ -941,6 +940,7 @@ export default function HomeScreen() {
                 style={styles.fullScreenVideo}
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay
+                useNativeControls
                 onPlaybackStatusUpdate={(status) => {
                   if (status.isLoaded && status.didJustFinish) handleFinishVideoEnd();
                 }}

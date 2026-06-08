@@ -165,6 +165,7 @@ const getBelgradeQuestions = (V, language) => {
       videos: [V.v4],
       images: [require('../../assets/images/belg_p4.jpg')],
       answerType: 'text+photo',
+      clue: q('Get to the area of Hotel Bristol', 'הגיעו לאזור מלון בריסטול', 'Idite do oblasti Hotela Bristol'),
       answers: [
         'karađorđeva 49', 'karadordeva 49', 'karađorđeva49', 'karadordeva49',
         'karadordjeva 49', '49 karađorđeva',
@@ -299,6 +300,7 @@ export default function HomeScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const [codeFocused, setCodeFocused] = useState(false);
   const [answerFocused, setAnswerFocused] = useState(false);
+  const [clueVisible, setClueVisible] = useState(false);
 
   const [startTime, setStartTime] = useState(null);
   const [finalTime, setFinalTime] = useState(null);
@@ -623,7 +625,7 @@ export default function HomeScreen() {
   };
 
   const resetAnswerState = () => {
-    setTextAnswer(''); setPhotoUri(null); setVideoUri(null); setWrongAnswer(false);
+    setTextAnswer(''); setPhotoUri(null); setVideoUri(null); setWrongAnswer(false); setClueVisible(false);
   };
 
   // ── Submit answer ──────────────────────────────────────────────────────────
@@ -745,6 +747,24 @@ export default function HomeScreen() {
           </TouchableOpacity>
           {videoUri && (
             <Text style={[styles.videoConfirm, textAlign]}>{t('videoReady')}</Text>
+          )}
+        </View>
+      )}
+      {q.clue && (
+        <View style={styles.clueBlock}>
+          <TouchableOpacity
+            style={styles.clueButton}
+            onPress={() => setClueVisible(v => !v)}
+          >
+            <Text style={styles.clueButtonText}>
+              {clueVisible ? t('hideClue') : t('showClue')}
+            </Text>
+          </TouchableOpacity>
+          {clueVisible && (
+            <View style={styles.clueCard}>
+              <Text style={styles.clueLabel}>{t('clueLabel')}</Text>
+              <Text style={[styles.clueText, textAlign]}>{q.clue}</Text>
+            </View>
           )}
         </View>
       )}
@@ -1025,6 +1045,12 @@ const styles = StyleSheet.create({
   captureButtonText: { color: C.onSurface, fontSize: 15, fontWeight: '600' },
   previewImage: { width: '100%', height: 200, borderRadius: 8, marginTop: 6 },
   videoConfirm: { color: C.secondary, fontSize: 14, fontWeight: '700', textAlign: 'center', marginTop: 6, letterSpacing: 1 },
+  clueBlock: { marginBottom: 16 },
+  clueButton: { backgroundColor: C.surfaceHigh, borderWidth: 1, borderColor: C.primary, borderRadius: 6, paddingVertical: 12, paddingHorizontal: 20, alignItems: 'center' },
+  clueButtonText: { color: C.primary, fontSize: 12, fontWeight: '800', letterSpacing: 2 },
+  clueCard: { marginTop: 10, backgroundColor: C.surfaceBright, borderRadius: 6, borderLeftWidth: 3, borderLeftColor: C.primary, padding: 14 },
+  clueLabel: { fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 },
+  clueText: { fontSize: 14, color: C.onSurface, lineHeight: 22 },
   uploadingContainer: { alignItems: 'center', marginVertical: 24 },
   uploadingText: { color: C.onVariant, fontSize: 11, marginTop: 12, letterSpacing: 3, textTransform: 'uppercase' },
   endResultsContainer: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 32, width: '100%' },

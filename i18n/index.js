@@ -147,6 +147,10 @@ const translations = {
 
     codeFull: "This code's group is already full.",
     codeExpired: 'This code has expired.',
+    showClue: 'SHOW CLUE',
+    hideClue: 'HIDE CLUE',
+    clueLabel: 'CLUE',
+    clueM4: 'Get to the area of Hotel Bristol',
 
   },
 
@@ -290,6 +294,10 @@ const translations = {
     globalRankLabel:  'דירוג עולמי',
     codeFull: "הקבוצה לקוד זה כבר מלאה.",
     codeExpired: 'קוד זה פג תוקף.',
+    showClue: 'הצג רמז',
+    hideClue: 'הסתר רמז',
+    clueLabel: 'רמז',
+    clueM4: 'הגיעו לאזור מלון בריסטול',
 
   },
 
@@ -434,6 +442,10 @@ const translations = {
 
     codeFull: "Grupa za ovaj kod je već popunjena.",
     codeExpired: 'Ovaj kod je istekao.',
+    showClue: 'PRIKAŽI NAGOVEŠTAJ',
+    hideClue: 'SAKRIJ NAGOVEŠTAJ',
+    clueLabel: 'NAGOVEŠTAJ',
+    clueM4: 'Idite do oblasti Hotela Bristol',
 
   },
 };

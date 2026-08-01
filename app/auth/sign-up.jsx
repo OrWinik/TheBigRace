@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LanguagePicker from '../../components/LanguagePicker';
 import { useTranslation } from '../../i18n';
 
 export default function SignUpScreen() {
@@ -86,6 +87,8 @@ export default function SignUpScreen() {
         <View style={styles.topBarDash} />
         <Text style={styles.topBarBrand}>THE BIG RACE</Text>
       </View>
+
+      <LanguagePicker />
 
       {/* ── Status line ── */}
       <View style={[styles.statusRow, rowStyle]}>

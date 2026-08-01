@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import LanguagePicker from '../../components/LanguagePicker';
 import { useTranslation } from '../../i18n';
 
 export default function SignInScreen() {
@@ -89,6 +90,8 @@ export default function SignInScreen() {
       <View style={styles.headerBlock}>
         <Text style={styles.brandTitle}>THE BIG RACE</Text>
       </View>
+
+      <LanguagePicker />
 
       {/* ── Auth Card ── */}
       <View style={styles.card}>

@@ -1,16 +1,19 @@
 // app/home/index.jsx
-import { ResizeMode, Video } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio, ResizeMode, Video } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
 import { get, getDatabase, push, ref, set } from 'firebase/database';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   AppState,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -38,6 +41,12 @@ const C = {
 };
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+const FEEDBACK_URLS = {
+  en: 'https://docs.google.com/forms/d/e/1FAIpQLSeZQ2-l-mTr4UGcF2bRe7bcg0X3sc7B6u3DLSVIgnJRll8SgA/viewform',
+  he: 'https://docs.google.com/forms/d/e/1FAIpQLSekUBgEn3zrgUTHYuPwLN3VnCwg4Xs2QItHHQZz6lASMyUQuw/viewform',
+  sr: 'https://docs.google.com/forms/d/e/1FAIpQLSebbrk1w2vC_fWJcPAhlnrGPWexpxQSnyXRGUPJK3bw2-pTAw/viewform',
+};
 
 // ─── Firebase Storage video URLs ─────────────────────────────────────────────
 const BUCKET = 'https://firebasestorage.googleapis.com/v0/b/triptailor-71050.firebasestorage.app/o';
@@ -94,20 +103,69 @@ const VIDEOS = {
 // Falls back to English if a language has no entry
 const getVideos = (language) => VIDEOS[language] ?? VIDEOS.en;
 
+// Short race video overrides — replace these URIs once Luka delivers the files
+const SHORT_VIDEOS = {
+  en: {
+    v5: { uri: videoUrl('belg_v5_short_eng.mov') },
+    v8: { uri: videoUrl('belg_v8_short_eng.mov') },
+    final: { uri: videoUrl('belg_final_short_eng.mov') },
+  },
+  he: {
+    v5: { uri: videoUrl('Misija 5 SHORT HEBREW sub.mp4') },
+    v8: { uri: videoUrl('Misija 8 SHORT HEBREW sub.mp4') },
+    final: { uri: videoUrl('FINAL SHORT HEBREW sub.mp4') },
+  },
+  sr: {
+    v5: { uri: videoUrl('Misija 5 SHORT SERBIAN titl.mp4') },
+    v8: { uri: videoUrl('Misija 8 SHORT SERBIAN titl.mp4') },
+    final: { uri: videoUrl('FINAL SHORT SERBIAN titl.mp4') },
+  },
+};
+
+const getShortVideoOverrides = (language) => SHORT_VIDEOS[language] ?? SHORT_VIDEOS.en;
+
+const RACE_PROGRESS_KEY = 'race_progress';
+
+const saveRaceProgress = async (state) => {
+  try {
+    await AsyncStorage.setItem(RACE_PROGRESS_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Failed to save race progress:', e);
+  }
+};
+
+const loadRaceProgress = async () => {
+  try {
+    const data = await AsyncStorage.getItem(RACE_PROGRESS_KEY);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    console.warn('Failed to load race progress:', e);
+    return null;
+  }
+};
+
+const clearRaceProgress = async () => {
+  try {
+    await AsyncStorage.removeItem(RACE_PROGRESS_KEY);
+  } catch (e) {
+    console.warn('Failed to clear race progress:', e);
+  }
+};
+
 // ─── Question definitions ─────────────────────────────────────────────────────
 // NOTE: Question titles and text are intentionally kept in English here as
 // they are game content (clues/missions), not UI strings. If you want to
 // translate the mission content itself, move these into the i18n file per language.
 
-const getBelgradeQuestions = (V, language) => {
+const getBelgradeQuestions = (V, language, raceType) => {
   const q = (en, he, sr) => language === 'he' ? he : language === 'sr' ? sr : en;
   return [
     {
       title: q('Mission 1 – Belgrade 1920', 'משימה 1 – בלגרד 1920', 'Misija 1 – Beograd 1920'),
       question: q(
-        'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the location and upload your photo.',
-        'ברוכים הבאים לבלגרד של לפני יותר ממאה שנה.\n\nעיר בתנופה, בנייה מחודשת אחרי מלחמות, רחובות מלאים בעגלות סוסים, חנויות מסורתיות וקולות של שוק עתיק.\n\nבידיכם נמצאת תמונה נדירה — צילום אותנטי מתחילת המאה ה-20, שצולם ממש כאן — ברחוב קנז מיכאילובה, לב העיר מאז ומעולם.\n\nאבל הזמן שחק הכל: חנויות התחלפו, מבנים שופצו, אנשים נעלמו... ורק מי שמביט בעין חדה יצליח לזהות את מה שנשאר בדיוק כפי שהיה.\n\nמשימתכם פשוטה — אך לא קלה:\nעליכם למצוא את המיקום המדויק בו צולמה התמונה לפני מאה שנה.\nאותו רחוב. אותו זווית. אותה נשמה.\n\nכשתמצאו את הנקודה — רשמו את הכתובת המדויקת וצלמו תמונה.',
-        'Dobrodošli u Beograd od pre više od sto godina —\ngrad u obnovi nakon ratova,\nsa ulicama punim zaprega, starih radnji i zvukova pijace.\nU vašim rukama je retka fotografija…\nnastala početkom 20. veka u Knez Mihailovoj ulici.\nAli vreme je promenilo sve:\nradnje su nestajale, zgrade su se menjale, ljudi su dolazili i odlazili…\nVaš zadatak je jednostavan, ali ne i lak:\npronađite tačnu lokaciju na kojoj je fotografija snimljena.\nKada je pronađete:\n– zapišite tačnu adresu\n– rekonstruišite fotografiju (isti ugao, ista perspektiva)\n– i snimite današnji Beograd u dijalogu sa prošlošću\nSrećno — istorija vas čeka.'
+        'Welcome to Belgrade from over 100 years ago.\n\nThe city was growing again after wars, with horse carriages in the streets, old markets, and traditional shops.\n\nYou are holding a rare photo — a real picture from the early 1900s, taken right here on Knez Mihailova Street, the heart of the city.\n\nBut time has changed everything: shops, buildings, people… Only careful eyes can spot what stayed the same.\n\nYour mission: Find the exact spot where this old photo was taken. When you find it, recreate the photo — same place, same angle, same feeling.\n\nWrite the name of the fountain and upload your photo.',
+        'ברוכים הבאים לבלגרד של לפני יותר ממאה שנה.\n\nעיר בתנופה, בנייה מחודשת אחרי מלחמות, רחובות מלאים בעגלות סוסים, חנויות מסורתיות וקולות של שוק עתיק.\n\nבידיכם נמצאת תמונה נדירה — צילום אותנטי מתחילת המאה ה-20, שצולם ממש כאן — ברחוב קנז מיכאילובה, לב העיר מאז ומעולם.\n\nאבל הזמן שחק הכל: חנויות התחלפו, מבנים שופצו, אנשים נעלמו... ורק מי שמביט בעין חדה יצליח לזהות את מה שנשאר בדיוק כפי שהיה.\n\nמשימתכם פשוטה — אך לא קלה:\nעליכם למצוא את המיקום המדויק בו צולמה התמונה לפני מאה שנה.\nאותו רחוב. אותו זווית. אותה נשמה.\n\nכשתמצאו את הנקודה — רשמו את שם המזרקה וצלמו תמונה.',
+        'Dobrodošli u Beograd od pre više od sto godina —\ngrad u obnovi nakon ratova,\nsa ulicama punim zaprega, starih radnji i zvukova pijace.\nU vašim rukama je retka fotografija…\nnastala početkom 20. veka u Knez Mihailovoj ulici.\nAli vreme je promenilo sve:\nradnje su nestajale, zgrade su se menjale, ljudi su dolazili i odlazili…\nVaš zadatak je jednostavan, ali ne i lak:\npronađite tačnu lokaciju na kojoj je fotografija snimljena.\nKada je pronađete:\n– zapišite ime česme\n– rekonstruišite fotografiju (isti ugao, ista perspektiva)\n– i snimite današnji Beograd u dijalogu sa prošlošću\nSrećno — istorija vas čeka.'
       ),
       videos: [V.v1],
       images: [require('../../assets/images/belg_p1.jpg')],
@@ -118,14 +176,14 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 2 – Identify the Symbol',
+      title: q('Mission 2 – Identify the Symbol', 'משימה 2 – זהו את הסמל', 'Misija 2 – Prepoznajte simbol'),
       question: q(
-        'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name to continue.',
+        'Look at the symbol before you.\n\nThis statue has stood watch over Belgrade for over a century — a naked warrior, arm raised, perched high above the city at Kalemegdan Fortress.\n\nWhat is the name of this famous statue?\n\nWrite its name and upload a photo of you with the statue.',
         'עליכם למצוא את הדמות הזאת, לרשום את שמה ולהצטלם איתה — כדי להוכיח שהצלחתם לזהות את אחד הסמלים המשמעותיים של בלגרד.\n\nהוא מחזיק חרב — אך אינו יוצא למלחמה.\nהוא עומד זקוף — אך אינו שייך לאף צבא.\nהוא מביט מערבה — כאילו שומר על העיר ונושם את ההיסטוריה שעברה כאן.\n\nמה שם הפסל?\n\nרשמו את שמו.',
-        'Bravo! Uspeli ste da rešite prvu zagonetku.\nSada ulazite u Kalemegdan — jedno od najvažnijih istorijskih mesta u Beogradu.\nNa visokoj litici, gde se spajaju Sava i Dunav, stoji simbol grada — Pobednik.\nOn nije kralj ni vojnik, već ideja:\npobeda, sloboda i snaga.\nVaš zadatak:\n– pronađite Pobednika\n– zapišite njegovo ime\n– i fotografišite se sa njim\nSrećno!'
+        'Bravo! Uspeli ste da rešite prvu zagonetku.\nSada ulazite u Kalemegdan — jedno od najvažnijih istorijskih mesta u Beogradu.\nNa visokoj litici, gde se spajaju Sava i Dunav, stoji simbol grada.\nOn nije kralj ni vojnik, već ideja:\npobeda, sloboda i snaga.\nVaš zadatak:\n– pronađite ga\n– zapišite njegovo ime\n– i fotografišite se sa njim\nSrećno!'
       ),
       videos: [V.v2],
-      answerType: 'text',
+      answerType: 'text+photo',
       answers: [
         'pobednik', 'the victor', 'the winner', 'the conqueror',
         'victor of kalemegdan', 'kalemegdan victor', 'belgrade victor statue',
@@ -141,7 +199,7 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 3 – The Tank Mission',
+      title: q('Mission 3 – The Tank Mission', 'משימה 3 – משימת הטנקים', 'Misija 3 – Misija tenkova'),
       question: q(
         'You are standing in front of a military exhibition.\n\nLook carefully at the tanks on display.\n\nHow many tanks are there?\n\nEnter the number to continue.',
         'אתם עומדים מול תצוגה צבאית.\n\nהביטו בקפידה בטנקים המוצגים.\n\nכמה טנקים יש?\n\nהזינו את המספר.',
@@ -156,7 +214,7 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 4 – The Graffiti Mission',
+      title: q('Mission 4 – The Graffiti Mission', 'משימה 4 – משימת הגרפיטי', 'Misija 4 – Misija grafita'),
       question: q(
         'Somewhere on the streets of Belgrade hides a piece of street art — bold, colourful, unmissable once you know where to look.\n\nFind the graffiti.\n\nWhat is its address?\n\nEnter the address and upload a photo of you standing in front of it.',
         'איפשהו ברחובות בלגרד מסתתרת יצירת רחוב — נועזת, צבעונית, בלתי נשכחת.\n\nמצאו את הגרפיטי.\n\nמה הכתובת שלו?\n\nהזינו את הכתובת המדויקת והעלו תמונה שלכם מולו.',
@@ -173,7 +231,7 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 5 – The Poet Mission',
+      title: q('Mission 5 – The Poet Mission', 'משימה 5 – משימת המשורר', 'Misija 5 – Misija pesnika'),
       question: q(
         "Welcome to Skadarlija — Belgrade's bohemian quarter, where poets, artists and dreamers have gathered for centuries.\n\nWatch the video, then channel your inner poet.\n\nRecord a short video of yourself performing — a poem, a song, a toast — anything that captures the spirit of this magical street.",
         'ברוכים הבאים לסקדרליה — הרחוב הבוהמי המפורסם של בלגרד.\n\nכשתגיעו לפסל של יאקשיץ׳, עליכם לגייס תושב מקומי — כן, תושב בלגרד אמיתי — להצטלם איתכם ליד הפסל ולצטט אחת מהלשוניות הקסומות שלנו בעברית:\n\n"גנן גידל דגן בגן דגן גדל בגן גנן..."\nאו\n"שרה שרה שיר שרה שמח שיר שמח שרה..."\n\nשימו לב: חובה לומר את המשפט ברציפות!\n\nרשמו סרטון והעלו אותו.',
@@ -185,9 +243,9 @@ const getBelgradeQuestions = (V, language) => {
       answers: [],
     },
     {
-      title: 'Mission 6 – The Princess Ice Cream',
+      title: q('Mission 6 – The Princess Profiterole', 'משימה 6 – נסיכת הפחזניות', 'Misija 6 – Princeza profiterola'),
       question: q(
-        'The Princess awaits you with her frozen treasures.\n\nChoose your favourite flavour from what she offers and write it below.',
+        'The Princess awaits you with her delicious profiteroles.\n\nChoose your favourite flavour from what she offers and write it below.',
         'הגיעו ל-Republic Square ומצאו את נסיכת הפחזניות.\n\nכשתמצאו אותה, רשמו באפליקציה את הטעם האהוב עליכם שהנסיכה מציעה.',
         'Sledeći cilj je Trg republike.\nVaš zadatak:\n– pronađite Princezu profiterola\n– i izaberite omiljeni ukus\nSlobodno se nagradite — trka postaje sve slađa.'
       ),
@@ -223,11 +281,11 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 7 – The Macabre Mission',
+      title: q('Mission 7 – The Macabre Mission', 'משימה 7 – משימת המקברה', 'Misija 7 – Jeziva misija'),
       question: q(
-        "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.\n\n* Video must be under 30 seconds.",
-        'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות חצי דקה\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.\n\n* הסרטון חייב להיות עד 30 שניות.',
-        'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od minimum 30 sekundi\nPretvorite ulicu u scenu.\n\n* Video mora biti kraći od 30 sekundi.'
+        "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.\n\n* Video must be between 15 and 30 seconds.",
+        'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות 15 שניות\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.\n\n* הסרטון חייב להיות עד 30 שניות.',
+        'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od najmanje 15 sekundi\nPretvorite ulicu u scenu.\n\n* Video mora biti kraći od 30 sekundi.'
       ),
       videos: [V.v7],
       images: [],
@@ -235,15 +293,21 @@ const getBelgradeQuestions = (V, language) => {
       answers: [],
     },
     {
-      title: 'Mission 8 – The Chocolate Mission',
-      question: q(
-        'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
-        'הגעתם ל-San Marina, אחת מחנויות השוקולד הידועות בעיר.\n\nבין כל המדפים מסתתר שוקולד אחד שינחה אתכם ליעד הבא.\n\nאם החנות סגורה? פשוט עמדו מול הויטרינה, מצאו את השוקולד הנכון וגלו לאן הדרך ממשיכה.\n\nכתבו את שם המיקום הבא.',
-        'Vaša sledeća stanica je San Marina.\nVaš zadatak:\n– pronađite posebnu čokoladu\n– ona će vas voditi dalje u igri\nAko je radnja zatvorena — pronađite je u izlogu.'
-      ),
+      title: q('Mission 8 – The Chocolate Mission', 'משימה 8 – משימת השוקולד', 'Misija 8 – Misija čokolade'),
+      question: raceType === 'short'
+        ? q(
+            "You've reached San Marina, one of the city's best-known chocolate shops — and your finish line. Somewhere among the shelves, one chocolate is marked with the Big Race symbol. It's yours. Find it, write down its name, and take a photo with it. Shop closed? Stand at the window, spot the chocolate with our symbol, and take your photo there. That's it — you've finished.",
+            'הגעתם ל-San Marina, אחת מחנויות השוקולד הידועות בעיר — וזו גם נקודת הסיום שלכם. בין כל המדפים מסתתר שוקולד אחד שמסומן בסמל המירוץ. הוא שלכם. מצאו אותו, תכתבו את שמו והצטלמו איתו. אם החנות סגורה — עמדו מול הויטרינה, אתרו את השוקולד עם הסמל, והצטלמו שם. זהו. סיימתם.',
+            'Stigli ste u San Marina, jednu od najpoznatijih čokoladnica u gradu — i to je vaš cilj. Među policama krije se jedna čokolada označena simbolom Big Race. Ona je vaša. Pronađite je, zapišite njeno ime i fotografišite se sa njom. Radnja je zatvorena? Stanite ispred izloga, pronađite čokoladu sa našim simbolom i tu se fotografišite. To je to — završili ste trku.'
+          )
+        : q(
+            'You have earned some chocolate.\n\nBut first — where are you headed next?\n\nWatch the video and figure out your next destination.\n\nWrite the name of the next location to continue.',
+            'הגעתם ל-San Marina, אחת מחנויות השוקולד הידועות בעיר.\n\nבין כל המדפים מסתתר שוקולד אחד שינחה אתכם ליעד הבא.\n\nאם החנות סגורה? פשוט עמדו מול הויטרינה, מצאו את השוקולד הנכון וגלו לאן הדרך ממשיכה.\n\nכתבו את שם המיקום הבא.',
+            'Vaša sledeća stanica je San Marina.\nVaš zadatak:\n– pronađite posebnu čokoladu\n– ona će vas voditi dalje u igri\nAko je radnja zatvorena — pronađite je u izlogu.'
+          ),
       videos: [V.v8],
       images: [],
-      answerType: 'text',
+      answerType: raceType === 'short' ? 'text+photo' : 'text',
       answers: [
         'saint sava', 'saint sava temple', 'sava saint',
         'hram svetog save', 'sveti sava', 'crkva svetog save',
@@ -254,11 +318,11 @@ const getBelgradeQuestions = (V, language) => {
       ],
     },
     {
-      title: 'Mission 9 – The Final Mission',
+      title: q('Mission 9 – The Final Mission', 'משימה 9 – המשימה האחרונה', 'Misija 9 – Poslednja misija'),
       question: q(
-        'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nFind the words. Write them down.\n\n* Enter only the first line of the inscription.\n\nThen upload a photo of you at this final location.',
+        'You have made it to the final mission.\n\nInside this sacred place, words echo in many languages — ancient words, timeless words, known to millions across the world.\n\nLook at the gate. Find the words inscribed there. Write them down.\n\n* Enter only the first line of the inscription.\n\nThen upload a photo of you at this final location.',
         'הגעתם לנקודת הסיום של המירוץ — כנסיית סנט סאבה.\n\nבמקום הקדוש ביותר בעיר, שפה עתיקה מופיעה במקום שאיש אינו מצפה לראותה. לא על קיר, לא על ספר, לא על מזבח — אלא על השער: שער שבו כל השפות כתובות בריבועים, שער שנפתח אל מול שמיים לבנים.\n\nמצאו את המילים הכתובות שם, רשמו אותן.\n\n* יש להזין את השורה הראשונה בלבד של הכיתוב.\n\nלאחר מכן העלו תמונה שלכם במיקום הסופי הזה.',
-        'Poslednja stanica.\nVaš zadatak:\n– pronađite skriveni natpis na kapiji\n– unesite ga u aplikaciju\n\n* Unesite samo prvi red natpisa.\n\nOvo je ključ završetka trke.'
+        'Poslednja stanica.\nVaš zadatak:\n– pronađite skriveni natpis na kapiji\n– unesite ga u aplikaciju\n\n* Unesite samo prvi red natpisa.\n\nZatim otpremite fotografiju na ovoj poslednjoj lokaciji.'
       ),
       videos: [V.v9],
       images: [],
@@ -276,17 +340,30 @@ const getBelgradeQuestions = (V, language) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const { t, isRTL, language } = useTranslation();
-  const V = getVideos(language);
-  const belgradeQuestions = getBelgradeQuestions(V, language);
+  const baseV = getVideos(language);
+  const V = baseV;
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [showWatchVideosModal, setShowWatchVideosModal] = useState(false);
+  const [showRaceTypeModal, setShowRaceTypeModal] = useState(false);
 
   const [gameCode, setGameCode] = useState('');
   const [inputCode, setInputCode] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [raceType, setRaceType] = useState(null);
+  const [codeTier, setCodeTier] = useState(null);
+
+  // Short race video overrides disabled until Luka delivers the files.
+  // To enable: uncomment and merge short overrides into V above.
+  const allBelgradeQuestions = getBelgradeQuestions(V, language, raceType);
+
+  const SHORT_EXCLUDED_INDICES = [3, 8];
+  const belgradeQuestions = raceType === 'short'
+    ? allBelgradeQuestions.filter((_, i) => !SHORT_EXCLUDED_INDICES.includes(i))
+    : allBelgradeQuestions;
 
   const [hasValidCode, setHasValidCode] = useState(false);
   const [codeChecked, setCodeChecked] = useState(false);
@@ -301,6 +378,9 @@ export default function HomeScreen() {
   const [codeFocused, setCodeFocused] = useState(false);
   const [answerFocused, setAnswerFocused] = useState(false);
   const [clueVisible, setClueVisible] = useState(false);
+  const [videoWatched, setVideoWatched] = useState({});
+  const [videoLoadErrors, setVideoLoadErrors] = useState({});
+  const [showTextFallback, setShowTextFallback] = useState({});
 
   const [startTime, setStartTime] = useState(null);
   const [finalTime, setFinalTime] = useState(null);
@@ -326,6 +406,89 @@ export default function HomeScreen() {
   const textAlign = isRTL ? { textAlign: 'right' } : {};
   const rowStyle = isRTL ? { flexDirection: 'row-reverse' } : {};
 
+  // ── Remote answers — fetch overrides from Firebase on mount ────────────────
+  const [remoteAnswers, setRemoteAnswers] = useState(null);
+
+  useEffect(() => {
+    get(ref(db, 'mission_answers'))
+      .then((snap) => { if (snap.exists()) setRemoteAnswers(snap.val()); })
+      .catch(() => {});
+  }, []);
+
+  // ── Set audio mode so videos play sound even with iPhone silent switch ─────
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+    });
+  }, []);
+
+  // ── Save race progress when app goes to background ─────────────────────────
+  const saveCurrentProgress = useCallback(() => {
+    if (showGameModal && startTime && finalTime === null) {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      saveRaceProgress({
+        gameCode,
+        selectedCountry,
+        currentQuestion,
+        raceType,
+        startTime,
+        elapsedAtSave: elapsed,
+        savedAt: Date.now(),
+        userId: user?.uid,
+      });
+    }
+  }, [showGameModal, startTime, finalTime, gameCode, selectedCountry, currentQuestion, user]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState.match(/inactive|background/)) {
+        saveCurrentProgress();
+      }
+    });
+    return () => subscription.remove();
+  }, [saveCurrentProgress]);
+
+  // ── Restore race progress on mount ────────────────────────────────────────
+  const [savedProgress, setSavedProgress] = useState(null);
+
+  const checkSavedProgress = useCallback(async () => {
+    const saved = await loadRaceProgress();
+    if (!saved || saved.userId !== user?.uid) {
+      await clearRaceProgress();
+      setSavedProgress(null);
+      return;
+    }
+    const hoursSinceSave = (Date.now() - saved.savedAt) / (1000 * 60 * 60);
+    if (hoursSinceSave > 30 * 24) {
+      await clearRaceProgress();
+      setSavedProgress(null);
+      return;
+    }
+    setSavedProgress(saved);
+  }, [user]);
+
+  const resumeRace = useCallback(async () => {
+    if (!savedProgress) return;
+    setGameCode(savedProgress.gameCode);
+    setSelectedCountry(savedProgress.selectedCountry);
+    setCurrentQuestion(savedProgress.currentQuestion);
+    setRaceType(savedProgress.raceType || 'long');
+    setHasValidCode(true);
+    const resumedStart = Date.now() - savedProgress.elapsedAtSave * 1000;
+    setStartTime(resumedStart);
+    setElapsedTime(savedProgress.elapsedAtSave);
+    setFinalTime(null);
+    setShowGameModal(true);
+    await clearRaceProgress();
+    setSavedProgress(null);
+  }, [savedProgress]);
+
+  const dismissSavedProgress = useCallback(async () => {
+    await clearRaceProgress();
+    setSavedProgress(null);
+  }, []);
+
   // ── Check code flag on mount ───────────────────────────────────────────────
   useEffect(() => {
     const checkCodeFlag = async () => {
@@ -337,7 +500,11 @@ export default function HomeScreen() {
           const age = Date.now() - timeSnap.val();
           if (age < THIRTY_DAYS_MS) {
             const codeSnap = await get(ref(db, `users/${user.uid}/game_code`));
-            if (codeSnap.exists()) setGameCode(String(codeSnap.val()));
+            if (codeSnap.exists()) {
+              const codeVal = String(codeSnap.val());
+              setGameCode(codeVal);
+              setCodeTier(codeVal.length >= 6 ? 'long' : 'short');
+            }
             setHasValidCode(true);
           } else {
             // Flag expired — clear it
@@ -366,7 +533,7 @@ export default function HomeScreen() {
         setCodeChecked(true);
       }
     };
-    checkCodeFlag();
+    checkCodeFlag().then(() => checkSavedProgress());
   }, []);
 
   // ── AppState — pause/resume welcome video ──────────────────────────────────
@@ -455,6 +622,7 @@ export default function HomeScreen() {
       const activateAndProceed = async () => {
         await saveUserFlag();
         setGameCode(trimmed);
+        setCodeTier(trimmed.length >= 6 ? 'long' : 'short');
         setHasValidCode(true);
         setShowCodeModal(false);
         setShowCountryModal(true);
@@ -521,6 +689,22 @@ export default function HomeScreen() {
   const selectCountry = (country) => {
     setSelectedCountry(country);
     setShowCountryModal(false);
+    if (codeTier === 'long') {
+      setShowRaceTypeModal(true);
+    } else {
+      setRaceType('short');
+      setShowWatchVideosModal(true);
+    }
+  };
+
+  const selectRaceType = (type) => {
+    setRaceType(type);
+    setShowRaceTypeModal(false);
+    setShowWatchVideosModal(true);
+  };
+
+  const handleWatchVideosConfirm = () => {
+    setShowWatchVideosModal(false);
     setWelcomeEnded(false);
     setShowSkipWelcome(false);
     setShowWelcomeModal(true);
@@ -555,15 +739,20 @@ export default function HomeScreen() {
   const startRace = () => {
     setShowWelcomeModal(false);
     setShowGameModal(true);
-    setStartTime(Date.now());
+    const now = Date.now();
+    setStartTime(now);
     setFinalTime(null);
     setElapsedTime(0);
     setCurrentQuestion(0);
     resetAnswerState();
+    saveRaceProgress({
+      gameCode, selectedCountry, currentQuestion: 0, raceType,
+      startTime: now, elapsedAtSave: 0, savedAt: now, userId: user?.uid,
+    });
   };
 
   // ── Media pickers ──────────────────────────────────────────────────────────
-  const pickPhoto = async () => {
+  const takePhotoFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(t('permissionNeeded'), t('cameraPermission'));
@@ -573,6 +762,33 @@ export default function HomeScreen() {
       mediaTypes: 'images', quality: 0.5, base64: true,
     });
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
+  };
+
+  const pickPhotoFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('permissionNeeded'), t('permissionMsg'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images', quality: 0.5, base64: true,
+    });
+    if (!result.canceled) setPhotoUri(result.assets[0].uri);
+  };
+
+  const pickPhoto = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: [t('cancel'), t('fromCamera'), t('fromGallery')], cancelButtonIndex: 0 },
+        (idx) => { if (idx === 1) takePhotoFromCamera(); else if (idx === 2) pickPhotoFromGallery(); }
+      );
+    } else {
+      Alert.alert(t('choosePhotoSource'), '', [
+        { text: t('fromCamera'), onPress: takePhotoFromCamera },
+        { text: t('fromGallery'), onPress: pickPhotoFromGallery },
+        { text: t('cancel'), style: 'cancel' },
+      ]);
+    }
   };
 
   const pickVideo = async () => {
@@ -626,14 +842,25 @@ export default function HomeScreen() {
 
   const resetAnswerState = () => {
     setTextAnswer(''); setPhotoUri(null); setVideoUri(null); setWrongAnswer(false); setClueVisible(false);
+    setShowTextFallback({});
   };
 
   // ── Submit answer ──────────────────────────────────────────────────────────
   const submitAnswer = async () => {
     const q = belgradeQuestions[currentQuestion];
+    const vKey = `${currentQuestion}-0`;
+    if (q.videos && q.videos.length > 0 && !videoWatched[vKey] && !showTextFallback[vKey]) {
+      Alert.alert(t('watchVideoFirst'), t('watchVideoFirstMsg'));
+      return;
+    }
     if (q.answerType === 'text' || q.answerType === 'text+photo') {
       if (q.answers.length > 0) {
-        const textOk = q.answers.some(a => a.toLowerCase() === textAnswer.toLowerCase().trim());
+        const remoteList = remoteAnswers?.[`q${currentQuestion + 1}`];
+        const allAnswers = remoteList ? [...q.answers, ...remoteList] : q.answers;
+        const normalize = (s) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+          .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z').replace(/đ/g, 'd');
+        const normalizedInput = normalize(textAnswer);
+        const textOk = allAnswers.some(a => normalize(a) === normalizedInput);
         if (!textOk) { setWrongAnswer(true); return; }
       }
     }
@@ -654,14 +881,21 @@ export default function HomeScreen() {
         const stopped = elapsedTime;
         setFinalTime(stopped);
         await saveResults(stopped);
+        await clearRaceProgress();
         setShowGameModal(false);
         setFinishVideoEnded(false);
         setShowSkipFinish(false);
         skipFinishTimerRef.current = setTimeout(() => setShowSkipFinish(true), 5000);
         setShowEndModal(true);
       } else {
-        setCurrentQuestion(prev => prev + 1);
+        const nextQ = currentQuestion + 1;
+        setCurrentQuestion(nextQ);
         resetAnswerState();
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        saveRaceProgress({
+          gameCode, selectedCountry, currentQuestion: nextQ, raceType,
+          startTime, elapsedAtSave: elapsed, savedAt: Date.now(), userId: user?.uid,
+        });
       }
     } catch (e) {
       console.error('Upload error:', e);
@@ -691,7 +925,7 @@ export default function HomeScreen() {
   const exitGame = () => {
     Alert.alert(t('exitTitle'), t('exitMessage'), [
       { text: t('stay'), style: 'cancel' },
-      { text: t('exitConfirm'), style: 'destructive', onPress: resetAll },
+      { text: t('exitConfirm'), style: 'destructive', onPress: async () => { saveCurrentProgress(); resetAll(); setTimeout(() => checkSavedProgress(), 100); } },
     ]);
   };
 
@@ -700,9 +934,11 @@ export default function HomeScreen() {
     if (skipWelcomeTimerRef.current) clearTimeout(skipWelcomeTimerRef.current);
     if (skipFinishTimerRef.current) clearTimeout(skipFinishTimerRef.current);
     setShowEndModal(false); setShowCodeModal(false); setShowCountryModal(false);
-    setShowWelcomeModal(false); setShowGameModal(false);
+    setShowWelcomeModal(false); setShowGameModal(false); setShowWatchVideosModal(false);
+    setShowRaceTypeModal(false); setRaceType(null);
     setInputCode(''); setSelectedCountry('');
     setCurrentQuestion(0); resetAnswerState();
+    setVideoWatched({}); setVideoLoadErrors({});
     setStartTime(null); setFinalTime(null); setElapsedTime(0);
     setWelcomeEnded(false); setShowSkipWelcome(false);
     setFinishVideoEnded(false); setShowSkipFinish(false);
@@ -796,6 +1032,20 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
+      {savedProgress && (
+        <View style={styles.resumeBlock}>
+          <TouchableOpacity style={styles.resumeButton} onPress={resumeRace}>
+            <Text style={styles.resumeButtonText}>{t('resumeYes')}</Text>
+            <Text style={styles.resumeInfo}>
+              {t('missionLabel')} {savedProgress.currentQuestion + 1} / {savedProgress.raceType === 'short' ? allBelgradeQuestions.length - SHORT_EXCLUDED_INDICES.length : allBelgradeQuestions.length}  ·  {formatTime(savedProgress.elapsedAtSave)}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dismissButton} onPress={dismissSavedProgress}>
+            <Text style={styles.dismissButtonText}>{t('resumeNo')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* ── Code Entry Modal ── */}
       <Modal visible={showCodeModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
@@ -851,6 +1101,44 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+      </Modal>
+
+      {/* ── Race Type Selection Modal ── */}
+      <Modal visible={showRaceTypeModal} animationType="fade">
+        <View style={styles.raceTypeScreen}>
+          <Text style={styles.raceTypeScreenTitle}>{t('selectRaceType')}</Text>
+          <Text style={[styles.raceTypeScreenSub, textAlign]}>{t('selectRaceTypeSub')}</Text>
+
+          <TouchableOpacity style={[styles.raceTypeButton, styles.raceTypeShort]} onPress={() => selectRaceType('short')}>
+            <Text style={styles.raceTypeEmoji}>⚡</Text>
+            <Text style={styles.raceTypeLabel}>{t('shortRace')}</Text>
+            <View style={styles.raceTypeDivider} />
+            <Text style={[styles.raceTypeDesc, textAlign]}>{t('shortRaceDesc')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.raceTypeButton, styles.raceTypeLong]} onPress={() => selectRaceType('long')}>
+            <Text style={styles.raceTypeEmoji}>🏁</Text>
+            <Text style={styles.raceTypeLabel}>{t('longRace')}</Text>
+            <View style={styles.raceTypeDivider} />
+            <Text style={[styles.raceTypeDesc, textAlign]}>{t('longRaceDesc')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.raceTypeBack} onPress={() => { setShowRaceTypeModal(false); setShowCountryModal(true); }}>
+            <Text style={styles.raceTypeBackText}>{t('cancel')}</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* ── Watch Videos Interstitial ── */}
+      <Modal visible={showWatchVideosModal} animationType="fade">
+        <View style={styles.watchVideosScreen}>
+          <Text style={styles.watchVideosIcon}>🎬</Text>
+          <Text style={[styles.watchVideosTitle, textAlign]}>{t('watchVideosTitle')}</Text>
+          <Text style={[styles.watchVideosMessage, textAlign]}>{t('watchVideosMessage')}</Text>
+          <TouchableOpacity style={styles.watchVideosButton} onPress={handleWatchVideosConfirm}>
+            <Text style={styles.watchVideosButtonText}>{t('watchVideosButton')}</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
@@ -914,12 +1202,55 @@ export default function HomeScreen() {
                 {belgradeQuestions[currentQuestion].title}
               </Text>
 
-              {belgradeQuestions[currentQuestion].videos.map((src, i) => (
-                <Video
-                  key={i} source={src} style={styles.mediaVideo}
-                  useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
-                />
-              ))}
+              {belgradeQuestions[currentQuestion].videos.map((src, i) => {
+                const vKey = `${currentQuestion}-${i}`;
+                const isWatched = videoWatched[vKey];
+                const errCount = videoLoadErrors[vKey] || 0;
+                const showFallback = showTextFallback[vKey];
+                return (
+                  <View key={i} style={styles.videoWrapper}>
+                    {showFallback ? (
+                      <View style={styles.videoFallback}>
+                        <Text style={styles.videoFallbackIcon}>⚠</Text>
+                        <Text style={styles.videoFallbackText}>{t('noConnectionMsg')}</Text>
+                      </View>
+                    ) : (
+                      <Video
+                        source={src} style={styles.mediaVideo}
+                        useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
+                        onPlaybackStatusUpdate={(status) => {
+                          if (status.isLoaded && status.durationMillis > 0 && !isWatched) {
+                            const pct = status.positionMillis / status.durationMillis;
+                            if (pct >= 0.9 || status.didJustFinish) {
+                              setVideoWatched(prev => ({ ...prev, [vKey]: true }));
+                            }
+                          }
+                        }}
+                        onError={() => {
+                          const newCount = errCount + 1;
+                          setVideoLoadErrors(prev => ({ ...prev, [vKey]: newCount }));
+                          if (newCount >= 2) {
+                            setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
+                          }
+                        }}
+                      />
+                    )}
+                    {isWatched && (
+                      <View style={styles.watchedBadge}>
+                        <Text style={styles.watchedBadgeText}>✓ {t('videoWatched')}</Text>
+                      </View>
+                    )}
+                    {errCount >= 2 && !showFallback && (
+                      <TouchableOpacity
+                        style={styles.showInstructionsBtn}
+                        onPress={() => setShowTextFallback(prev => ({ ...prev, [vKey]: true }))}
+                      >
+                        <Text style={styles.showInstructionsBtnText}>{t('showInstructions')}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
 
               {belgradeQuestions[currentQuestion].images &&
                 belgradeQuestions[currentQuestion].images.map((src, i) => (
@@ -982,6 +1313,12 @@ export default function HomeScreen() {
               </View>
               <TouchableOpacity style={styles.primaryButton} onPress={resetAll}>
                 <Text style={styles.primaryButtonText}>{t('backToHome')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.feedbackButton}
+                onPress={() => Linking.openURL(FEEDBACK_URLS[language] || FEEDBACK_URLS.en)}
+              >
+                <Text style={styles.feedbackButtonText}>{t('feedbackButton')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -1061,4 +1398,38 @@ const styles = StyleSheet.create({
   endTimeLabel: { fontSize: 11, fontWeight: '700', color: C.secondary, letterSpacing: 3, marginBottom: 8, textTransform: 'uppercase' },
   endTimeValue: { fontSize: 44, fontWeight: '900', color: C.secondary, letterSpacing: 2 },
   logo: { width: 200, height: 200, marginBottom: 25 },
+  resumeBlock: { width: '100%', marginBottom: 16 },
+  resumeButton: { width: '100%', paddingVertical: 18, borderRadius: 4, backgroundColor: C.secondary, alignItems: 'center', justifyContent: 'center', marginBottom: 8, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
+  resumeButtonText: { color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
+  resumeInfo: { color: 'rgba(6,14,32,0.6)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 4 },
+  dismissButton: { alignSelf: 'center', paddingVertical: 8 },
+  dismissButtonText: { fontSize: 12, fontWeight: '700', color: C.onVariant, letterSpacing: 2, textTransform: 'uppercase', textDecorationLine: 'underline' },
+  raceTypeScreen: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 28 },
+  raceTypeScreenTitle: { fontSize: 28, fontWeight: '900', color: C.primary, letterSpacing: 2, marginBottom: 10, textTransform: 'uppercase' },
+  raceTypeScreenSub: { fontSize: 14, color: C.onVariant, lineHeight: 22, textAlign: 'center', marginBottom: 36, paddingHorizontal: 12 },
+  raceTypeButton: { width: '100%', paddingVertical: 28, paddingHorizontal: 24, borderRadius: 12, marginBottom: 16, borderWidth: 1.5, alignItems: 'center' },
+  raceTypeShort: { backgroundColor: C.surfaceLow, borderColor: C.primary },
+  raceTypeLong: { backgroundColor: C.surfaceLow, borderColor: C.secondary },
+  raceTypeEmoji: { fontSize: 36, marginBottom: 12 },
+  raceTypeLabel: { fontSize: 20, fontWeight: '800', color: C.onSurface, letterSpacing: 3, textTransform: 'uppercase' },
+  raceTypeDivider: { width: 40, height: 2, backgroundColor: C.outline, borderRadius: 1, marginVertical: 12 },
+  raceTypeDesc: { fontSize: 14, color: C.onVariant, letterSpacing: 0.5, lineHeight: 20, textAlign: 'center' },
+  raceTypeBack: { marginTop: 12, paddingVertical: 10 },
+  raceTypeBackText: { fontSize: 13, fontWeight: '700', color: C.onVariant, letterSpacing: 2, textTransform: 'uppercase', textDecorationLine: 'underline' },
+  watchVideosScreen: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 36 },
+  watchVideosIcon: { fontSize: 64, marginBottom: 28 },
+  watchVideosTitle: { fontSize: 32, fontWeight: '900', color: C.primary, letterSpacing: 3, marginBottom: 20, textTransform: 'uppercase' },
+  watchVideosMessage: { fontSize: 17, color: C.onSurface, lineHeight: 28, textAlign: 'center', marginBottom: 48 },
+  watchVideosButton: { width: '100%', paddingVertical: 20, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
+  watchVideosButtonText: { color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
+  videoWrapper: { marginBottom: 16, position: 'relative' },
+  watchedBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(105,246,184,0.9)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  watchedBadgeText: { color: C.base, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  videoFallback: { width: '100%', height: 220, borderRadius: 8, backgroundColor: C.surfaceHigh, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  videoFallbackIcon: { fontSize: 32, marginBottom: 10 },
+  videoFallbackText: { fontSize: 14, color: C.onVariant, textAlign: 'center', lineHeight: 20 },
+  showInstructionsBtn: { marginTop: 8, alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: C.surfaceHigh, borderRadius: 6, borderWidth: 1, borderColor: C.primary },
+  showInstructionsBtnText: { color: C.primary, fontSize: 12, fontWeight: '700', letterSpacing: 2 },
+  feedbackButton: { width: '100%', paddingVertical: 14, borderRadius: 4, borderWidth: 1.5, borderColor: C.onVariant, alignItems: 'center', marginTop: 4 },
+  feedbackButtonText: { color: C.onVariant, fontSize: 13, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' },
 });

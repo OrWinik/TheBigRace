@@ -2,7 +2,7 @@
   "expo": {
     "name": "TheBigRace",
     "slug": "TheBigRace",
-    "version": "1.3",
+    "version": "1.4",
     "orientation": "portrait",
     "icon": "./assets/LogoW.png",
     "scheme": "TheBigRace",

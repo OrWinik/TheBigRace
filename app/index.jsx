@@ -4,6 +4,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import { getAuth, getReactNativePersistence, initializeAuth, onAuthStateChanged, } from 'firebase/auth';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { useTranslation } from '../i18n';
 
 
 const firebaseConfig = {
@@ -30,8 +31,14 @@ if (Platform.OS !== 'web') {
 
 export default function IndexPage() {
   const router = useRouter();
+  const { hasChosenLanguage } = useTranslation();
 
   useEffect(() => {
+    if (!hasChosenLanguage) {
+      router.replace('/auth/language-select');
+      return;
+    }
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         router.replace('/home');
@@ -39,7 +46,7 @@ export default function IndexPage() {
         router.replace('/auth/sign-in');
       }
     });
-  }, []);
+  }, [hasChosenLanguage]);
 
   return null;
 }

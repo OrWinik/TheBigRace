@@ -102,7 +102,7 @@ const translations = {
     timerLabel:         'TIME',
     exit:               'EXIT',
     exitTitle:          'Exit Game',
-    exitMessage:        "Are you sure you want to exit? Your progress won't be saved.",
+    exitMessage:        "Are you sure you want to exit? You can continue later from where you stopped.",
     stay:               'Stay',
     exitConfirm:        'Exit',
     submit:             'SUBMIT',
@@ -151,6 +151,31 @@ const translations = {
     hideClue: 'HIDE CLUE',
     clueLabel: 'CLUE',
     clueM4: 'Get to the area of Hotel Bristol',
+    chooseLanguage: 'CHOOSE YOUR LANGUAGE',
+    continueButton: 'CONTINUE',
+    resumeRaceTitle: 'Resume Race',
+    resumeRaceMessage: 'You have an unfinished race. Would you like to continue where you left off?',
+    resumeYes: 'Continue Race',
+    resumeNo: 'Start Fresh',
+    watchVideosTitle: 'IMPORTANT',
+    watchVideosMessage: 'Please watch the videos carefully.\nThey contain the clues and instructions you need to complete each mission.',
+    watchVideosButton: 'I UNDERSTAND, LET\'S GO',
+    videoWatched: 'WATCHED',
+    watchVideoFirst: 'Watch the video first',
+    watchVideoFirstMsg: 'Please watch at least 90% of the video before continuing.',
+    noConnection: 'No Connection',
+    noConnectionMsg: 'The video could not be loaded. Please check your internet connection and try again.',
+    showInstructions: 'SHOW INSTRUCTIONS',
+    choosePhotoSource: 'Add Photo',
+    fromCamera: 'Take Photo',
+    fromGallery: 'Choose from Gallery',
+    feedbackButton: 'SEND FEEDBACK',
+    selectRaceType: 'SELECT RACE TYPE',
+    selectRaceTypeSub: 'Choose how you want to experience Belgrade.\nBoth paths start at the same place — pick your pace.',
+    shortRace: 'SHORT RACE',
+    longRace: 'LONG RACE',
+    shortRaceDesc: '7 missions — a faster adventure through the city highlights',
+    longRaceDesc: '9 missions — the full experience with every challenge',
 
   },
 
@@ -251,7 +276,7 @@ const translations = {
     timerLabel:         'זמן',
     exit:               'יציאה',
     exitTitle:          'יציאה מהמשחק',
-    exitMessage:        'האם אתה בטוח שברצונך לצאת? ההתקדמות שלך לא תישמר.',
+    exitMessage:        'האם אתה בטוח שברצונך לצאת? תוכל להמשיך מאוחר יותר מאיפה שעצרת.',
     stay:               'הישאר',
     exitConfirm:        'צא',
     submit:             'שלח',
@@ -298,6 +323,31 @@ const translations = {
     hideClue: 'הסתר רמז',
     clueLabel: 'רמז',
     clueM4: 'הגיעו לאזור מלון בריסטול',
+    chooseLanguage: 'בחר שפה',
+    continueButton: 'המשך',
+    resumeRaceTitle: 'חזרה למירוץ',
+    resumeRaceMessage: 'יש לך מירוץ שלא הסתיים. האם תרצה להמשיך מאיפה שעצרת?',
+    resumeYes: 'המשך מירוץ',
+    resumeNo: 'התחל מחדש',
+    watchVideosTitle: 'חשוב',
+    watchVideosMessage: 'אנא צפו בסרטונים בקשב רב.\nהם מכילים את הרמזים וההוראות שאתם צריכים כדי להשלים כל משימה.',
+    watchVideosButton: 'הבנתי, בואו נתחיל',
+    videoWatched: 'נצפה',
+    watchVideoFirst: 'צפו בסרטון קודם',
+    watchVideoFirstMsg: 'אנא צפו בלפחות 90% מהסרטון לפני שממשיכים.',
+    noConnection: 'אין חיבור',
+    noConnectionMsg: 'לא ניתן לטעון את הסרטון. אנא בדקו את החיבור לאינטרנט ונסו שוב.',
+    showInstructions: 'הצג הוראות',
+    choosePhotoSource: 'הוסף תמונה',
+    fromCamera: 'צלם תמונה',
+    fromGallery: 'בחר מהגלריה',
+    feedbackButton: 'שלח משוב',
+    selectRaceType: 'בחר סוג מירוץ',
+    selectRaceTypeSub: 'בחרו איך תרצו לחוות את בלגרד.\nשני המסלולים מתחילים באותו מקום — בחרו את הקצב שלכם.',
+    shortRace: 'מירוץ קצר',
+    longRace: 'מירוץ ארוך',
+    shortRaceDesc: '7 משימות — הרפתקה מהירה דרך נקודות החן של העיר',
+    longRaceDesc: '9 משימות — החוויה המלאה עם כל האתגרים',
 
   },
 
@@ -398,7 +448,7 @@ const translations = {
     timerLabel:         'VREME',
     exit:               'IZLAZ',
     exitTitle:          'Izlaz iz igre',
-    exitMessage:        'Da li ste sigurni da želite da izađete? Vaš napredak neće biti sačuvan.',
+    exitMessage:        'Da li ste sigurni da želite da izađete? Možete nastaviti kasnije gde ste stali.',
     stay:               'Ostani',
     exitConfirm:        'Izađi',
     submit:             'POTVRDI',
@@ -446,6 +496,31 @@ const translations = {
     hideClue: 'SAKRIJ NAGOVEŠTAJ',
     clueLabel: 'NAGOVEŠTAJ',
     clueM4: 'Idite do oblasti Hotela Bristol',
+    chooseLanguage: 'IZABERITE JEZIK',
+    continueButton: 'NASTAVI',
+    resumeRaceTitle: 'Nastavi trku',
+    resumeRaceMessage: 'Imate nezavršenu trku. Da li želite da nastavite gde ste stali?',
+    resumeYes: 'Nastavi trku',
+    resumeNo: 'Počni ispočetka',
+    watchVideosTitle: 'VAŽNO',
+    watchVideosMessage: 'Molimo pažljivo pogledajte video snimke.\nOni sadrže tragove i uputstva koja su vam potrebna da završite svaku misiju.',
+    watchVideosButton: 'RAZUMEM, IDEMO',
+    videoWatched: 'POGLEDANO',
+    watchVideoFirst: 'Prvo pogledajte video',
+    watchVideoFirstMsg: 'Molimo pogledajte najmanje 90% videa pre nego što nastavite.',
+    noConnection: 'Nema veze',
+    noConnectionMsg: 'Video nije mogao da se učita. Proverite internet vezu i pokušajte ponovo.',
+    showInstructions: 'PRIKAŽI UPUTSTVA',
+    choosePhotoSource: 'Dodaj fotografiju',
+    fromCamera: 'Fotografišite',
+    fromGallery: 'Izaberite iz galerije',
+    feedbackButton: 'POŠALJI POVRATNU INFORMACIJU',
+    selectRaceType: 'IZABERITE TIP TRKE',
+    selectRaceTypeSub: 'Izaberite kako želite da doživite Beograd.\nOba puta počinju na istom mestu — izaberite svoj tempo.',
+    shortRace: 'KRATKA TRKA',
+    longRace: 'DUGA TRKA',
+    shortRaceDesc: '7 misija — brža avantura kroz gradske znamenitosti',
+    longRaceDesc: '9 misija — potpuno iskustvo sa svim izazovima',
 
   },
 };
@@ -453,18 +528,23 @@ const translations = {
 // ─── Context ──────────────────────────────────────────────────────────────────
 const LanguageContext = createContext();
 const STORAGE_KEY = 'app_language';
+const LANGUAGE_CHOSEN_KEY = 'language_chosen';
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState('en');
   const [loaded, setLoaded]     = useState(false);
+  const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
 
-  // Load saved language on mount
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((saved) => {
+    Promise.all([
+      AsyncStorage.getItem(STORAGE_KEY),
+      AsyncStorage.getItem(LANGUAGE_CHOSEN_KEY),
+    ])
+      .then(([saved, chosen]) => {
         if (saved && translations[saved]) {
           applyLanguage(saved, false);
         }
+        setHasChosenLanguage(chosen === 'true');
       })
       .finally(() => setLoaded(true));
   }, []);
@@ -481,7 +561,11 @@ export function LanguageProvider({ children }) {
     }
 
     setLanguage(code);
-    if (persist) AsyncStorage.setItem(STORAGE_KEY, code);
+    if (persist) {
+      AsyncStorage.setItem(STORAGE_KEY, code);
+      AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
+      setHasChosenLanguage(true);
+    }
   };
 
   const t = (key) => translations[language]?.[key] ?? translations.en[key] ?? key;
@@ -489,7 +573,7 @@ export function LanguageProvider({ children }) {
   if (!loaded) return null; // wait for AsyncStorage before rendering
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: applyLanguage, t, isRTL: language === 'he' }}>
+    <LanguageContext.Provider value={{ language, setLanguage: applyLanguage, t, isRTL: language === 'he', hasChosenLanguage }}>
       {children}
     </LanguageContext.Provider>
   );

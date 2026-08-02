@@ -71,7 +71,7 @@ export default function LeaderboardScreen() {
           if (!results) return;
 
           let bestTime = null;
-          Object.values(results).forEach((result) => {
+          const checkResult = (result) => {
             if (
               result.country &&
               result.country.toLowerCase() === selectedCity.toLowerCase() &&
@@ -79,6 +79,12 @@ export default function LeaderboardScreen() {
             ) {
               if (bestTime === null || result.time < bestTime) bestTime = result.time;
             }
+          };
+          if (results.races) {
+            Object.values(results.races).forEach(checkResult);
+          }
+          Object.values(results).forEach((val) => {
+            if (val && typeof val === 'object' && val.country) checkResult(val);
           });
 
           if (bestTime !== null) allEntries.push({ uid, userName, time: bestTime });

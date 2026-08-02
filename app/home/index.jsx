@@ -1,6 +1,7 @@
 // app/home/index.jsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio, ResizeMode, Video } from 'expo-av';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth } from 'firebase/auth';
@@ -116,9 +117,9 @@ const SHORT_VIDEOS = {
     final: { uri: videoUrl('FINAL SHORT HEBREW sub.mp4') },
   },
   sr: {
-    v5: { uri: videoUrl('Misija 5 SHORT SERBIAN titl.mp4') },
-    v8: { uri: videoUrl('Misija 8 SHORT SERBIAN titl.mp4') },
-    final: { uri: videoUrl('FINAL SHORT SERBIAN titl.mp4') },
+    v5: { uri: videoUrl('Misija 5 SHORT SERBIAN titl.mov') },
+    v8: { uri: videoUrl('Misija 8 SHORT SERBIAN titl.mov') },
+    final: { uri: videoUrl('FINAL SHORT SERBIAN titl.mov') },
   },
 };
 
@@ -172,7 +173,8 @@ const getBelgradeQuestions = (V, language, raceType) => {
       answerType: 'text+photo',
       answers: [
         'delijska česma', 'delijska cesma', 'delijska fountain', 'delijska',
-        'מזרקת דליסקה', 'דליסקה', 'דליסקה פאונטיין',
+        'fontana', 'turkish fountain', 'turska česma', 'turska cesma',
+        'מזרקת דליסקה', 'דליסקה', 'דליסקה פאונטיין', 'פונטנה',
       ],
     },
     {
@@ -186,6 +188,7 @@ const getBelgradeQuestions = (V, language, raceType) => {
       answerType: 'text+photo',
       answers: [
         'pobednik', 'the victor', 'the winner', 'the conqueror',
+        'victor', 'viktor', 'the viktor',
         'victor of kalemegdan', 'kalemegdan victor', 'belgrade victor statue',
         'monument to victory', 'victory statue of belgrade',
         'osvajač',
@@ -193,6 +196,7 @@ const getBelgradeQuestions = (V, language, raceType) => {
         'победник са калемегдана', 'калемегдански победник',
         'београдски победник', 'статуа победе у београду',
         'פובדניק', 'המנצח', 'הזוכה', 'הכובש',
+        'ויקטור', 'פסל ויקטור',
         'פסל ויקטור של קלמגדן', 'ויקטור קלמגדן',
         'פסל ויקטור של בלגרד', 'אנדרטת הניצחון',
         'פסל הניצחון של בלגרד',
@@ -281,9 +285,9 @@ const getBelgradeQuestions = (V, language, raceType) => {
       ],
     },
     {
-      title: q('Mission 7 – The Macabre Mission', 'משימה 7 – משימת המקברה', 'Misija 7 – Jeziva misija'),
+      title: q('Mission 7 – The Macarena Mission', 'משימה 7 – משימת המקרנה', 'Misija 7 – Misija Macarene'),
       question: q(
-        "The macabre dance is one of the oldest and most haunting traditions in European art — a dance with Death himself.\n\nWatch the video for inspiration.\n\nNow it's your turn: record a short video of your group performing the macabre dance.\n\nBe dramatic. Be bold. Be unforgettable.\n\n* Video must be between 15 and 30 seconds.",
+        "Time to turn the streets of Belgrade into your stage!\n\nYour mission: perform the Macarena dance with at least 4 local people.\n\nRecord a short video — be bold, be fun, be unforgettable.\n\n* Video must be between 15 and 30 seconds.",
         'בלב בלגרד, בין רחובות מלאי חיים, אתם עומדים להפוך לרגע למוקד תשומת הלב של כולם.\n\nעליכם:\n• לבצע את ריקוד המקרנה\n• אתם ועוד ארבעה אנשים מקומיים (או שאחד מכם מצלם ואז אתם ועוד חמישה)\n• במשך לפחות 15 שניות\n• והכל חייב להיות מצולם!\n\nרשמו סרטון והעלו אותו.\n\n* הסרטון חייב להיות עד 30 שניות.',
         'Sada podižemo nivo.\nVaš zadatak:\n– izvedite ples Macarena\n– sa najmanje 4 lokalne osobe\n– snimite video od najmanje 15 sekundi\nPretvorite ulicu u scenu.\n\n* Video mora biti kraći od 30 sekundi.'
       ),
@@ -341,7 +345,6 @@ const getBelgradeQuestions = (V, language, raceType) => {
 export default function HomeScreen() {
   const { t, isRTL, language } = useTranslation();
   const baseV = getVideos(language);
-  const V = baseV;
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -356,8 +359,8 @@ export default function HomeScreen() {
   const [raceType, setRaceType] = useState(null);
   const [codeTier, setCodeTier] = useState(null);
 
-  // Short race video overrides disabled until Luka delivers the files.
-  // To enable: uncomment and merge short overrides into V above.
+  const shortOverrides = raceType === 'short' ? getShortVideoOverrides(language) : {};
+  const V = { ...baseV, ...shortOverrides };
   const allBelgradeQuestions = getBelgradeQuestions(V, language, raceType);
 
   const SHORT_EXCLUDED_INDICES = [3, 8];
@@ -369,6 +372,7 @@ export default function HomeScreen() {
   const [codeChecked, setCodeChecked] = useState(false);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [furthestQuestion, setFurthestQuestion] = useState(0);
   const [textAnswer, setTextAnswer] = useState('');
   const [photoUri, setPhotoUri] = useState(null);
   const [videoUri, setVideoUri] = useState(null);
@@ -381,6 +385,8 @@ export default function HomeScreen() {
   const [videoWatched, setVideoWatched] = useState({});
   const [videoLoadErrors, setVideoLoadErrors] = useState({});
   const [showTextFallback, setShowTextFallback] = useState({});
+  const videoLastProgress = useRef({});
+  const videoStallTimers = useRef({});
 
   const [startTime, setStartTime] = useState(null);
   const [finalTime, setFinalTime] = useState(null);
@@ -473,6 +479,7 @@ export default function HomeScreen() {
     setGameCode(savedProgress.gameCode);
     setSelectedCountry(savedProgress.selectedCountry);
     setCurrentQuestion(savedProgress.currentQuestion);
+    setFurthestQuestion(savedProgress.currentQuestion);
     setRaceType(savedProgress.raceType || 'long');
     setHasValidCode(true);
     const resumedStart = Date.now() - savedProgress.elapsedAtSave * 1000;
@@ -708,6 +715,7 @@ export default function HomeScreen() {
     setWelcomeEnded(false);
     setShowSkipWelcome(false);
     setShowWelcomeModal(true);
+    ScreenOrientation.unlockAsync();
     skipWelcomeTimerRef.current = setTimeout(() => setShowSkipWelcome(true), 5000);
   };
 
@@ -726,17 +734,20 @@ export default function HomeScreen() {
 
   const handleFinishVideoEnd = () => {
     if (skipFinishTimerRef.current) clearTimeout(skipFinishTimerRef.current);
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     setFinishVideoEnded(true);
   };
 
   const handleSkipFinish = async () => {
     if (skipFinishTimerRef.current) clearTimeout(skipFinishTimerRef.current);
     if (finishVideoRef.current) await finishVideoRef.current.pauseAsync();
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     setFinishVideoEnded(true);
   };
 
   // ── Start Race ─────────────────────────────────────────────────────────────
   const startRace = () => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     setShowWelcomeModal(false);
     setShowGameModal(true);
     const now = Date.now();
@@ -744,6 +755,7 @@ export default function HomeScreen() {
     setFinalTime(null);
     setElapsedTime(0);
     setCurrentQuestion(0);
+    setFurthestQuestion(0);
     resetAnswerState();
     saveRaceProgress({
       gameCode, selectedCountry, currentQuestion: 0, raceType,
@@ -791,7 +803,7 @@ export default function HomeScreen() {
     }
   };
 
-  const pickVideo = async () => {
+  const recordVideoFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(t('permissionNeeded'), t('cameraVideoPermission'));
@@ -801,6 +813,33 @@ export default function HomeScreen() {
       mediaTypes: 'videos', videoMaxDuration: 30,
     });
     if (!result.canceled) setVideoUri(result.assets[0].uri);
+  };
+
+  const pickVideoFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('permissionNeeded'), t('permissionMsg'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'videos',
+    });
+    if (!result.canceled) setVideoUri(result.assets[0].uri);
+  };
+
+  const pickVideo = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: [t('cancel'), t('recordVideo'), t('fromGallery')], cancelButtonIndex: 0 },
+        (idx) => { if (idx === 1) recordVideoFromCamera(); else if (idx === 2) pickVideoFromGallery(); }
+      );
+    } else {
+      Alert.alert(t('choosePhotoSource'), '', [
+        { text: t('recordVideo'), onPress: recordVideoFromCamera },
+        { text: t('fromGallery'), onPress: pickVideoFromGallery },
+        { text: t('cancel'), style: 'cancel' },
+      ]);
+    }
   };
 
   const saveFileToDatabase = async (uri, dbPath) => {
@@ -842,7 +881,7 @@ export default function HomeScreen() {
 
   const resetAnswerState = () => {
     setTextAnswer(''); setPhotoUri(null); setVideoUri(null); setWrongAnswer(false); setClueVisible(false);
-    setShowTextFallback({});
+    setVideoWatched({}); setVideoLoadErrors({}); setShowTextFallback({});
   };
 
   // ── Submit answer ──────────────────────────────────────────────────────────
@@ -886,10 +925,12 @@ export default function HomeScreen() {
         setFinishVideoEnded(false);
         setShowSkipFinish(false);
         skipFinishTimerRef.current = setTimeout(() => setShowSkipFinish(true), 5000);
+        ScreenOrientation.unlockAsync();
         setShowEndModal(true);
       } else {
         const nextQ = currentQuestion + 1;
         setCurrentQuestion(nextQ);
+        setFurthestQuestion(nextQ);
         resetAnswerState();
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         saveRaceProgress({
@@ -909,7 +950,7 @@ export default function HomeScreen() {
   const saveResults = async (time) => {
     if (!user) return;
     try {
-      await push(ref(db, `users/${user.uid}/results`), {
+      await push(ref(db, `users/${user.uid}/results/races`), {
         gameCode, country: selectedCountry, time,
         completedAt: Date.now(),
         playedByUserId: user.uid,
@@ -937,7 +978,7 @@ export default function HomeScreen() {
     setShowWelcomeModal(false); setShowGameModal(false); setShowWatchVideosModal(false);
     setShowRaceTypeModal(false); setRaceType(null);
     setInputCode(''); setSelectedCountry('');
-    setCurrentQuestion(0); resetAnswerState();
+    setCurrentQuestion(0); setFurthestQuestion(0); resetAnswerState();
     setVideoWatched({}); setVideoLoadErrors({});
     setStartTime(null); setFinalTime(null); setElapsedTime(0);
     setWelcomeEnded(false); setShowSkipWelcome(false);
@@ -1152,6 +1193,13 @@ export default function HomeScreen() {
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
             useNativeControls
+            onFullscreenUpdate={({ fullscreenUpdate }) => {
+              if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
+                ScreenOrientation.unlockAsync();
+              } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
+                ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+              }
+            }}
             onPlaybackStatusUpdate={(status) => {
               if (status.isLoaded && status.didJustFinish) handleWelcomeVideoEnd();
             }}
@@ -1184,9 +1232,33 @@ export default function HomeScreen() {
                 <Text style={styles.timerLabel}>{t('timerLabel')}</Text>
                 <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
               </View>
-              <TouchableOpacity style={styles.exitButton} onPress={exitGame}>
-                <Text style={styles.exitButtonText}>{t('exit')}</Text>
-              </TouchableOpacity>
+              <View style={[styles.headerButtons, rowStyle]}>
+                {currentQuestion > 0 && (
+                  <TouchableOpacity style={styles.backButton} onPress={() => {
+                    Object.values(videoStallTimers.current).forEach(t => t && clearTimeout(t));
+                    videoStallTimers.current = {};
+                    setShowTextFallback({});
+                    setVideoLoadErrors({});
+                    setCurrentQuestion(currentQuestion - 1);
+                  }}>
+                    <Text style={styles.backButtonText}>{isRTL ? '→' : '←'} {t('backButton')}</Text>
+                  </TouchableOpacity>
+                )}
+                {currentQuestion < furthestQuestion && (
+                  <TouchableOpacity style={styles.nextButton} onPress={() => {
+                    Object.values(videoStallTimers.current).forEach(t => t && clearTimeout(t));
+                    videoStallTimers.current = {};
+                    setShowTextFallback({});
+                    setVideoLoadErrors({});
+                    setCurrentQuestion(currentQuestion + 1);
+                  }}>
+                    <Text style={styles.nextButtonText}>{t('nextButton')} {isRTL ? '←' : '→'}</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity style={styles.exitButton} onPress={exitGame}>
+                  <Text style={styles.exitButtonText}>{t('exit')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <ScrollView
@@ -1199,7 +1271,7 @@ export default function HomeScreen() {
                 {t('missionLabel')} {currentQuestion + 1} / {belgradeQuestions.length}
               </Text>
               <Text style={[styles.missionTitle, textAlign]}>
-                {belgradeQuestions[currentQuestion].title}
+                {belgradeQuestions[currentQuestion].title.replace(/^(Mission |משימה |Misija )\d+/, `$1${currentQuestion + 1}`)}
               </Text>
 
               {belgradeQuestions[currentQuestion].videos.map((src, i) => {
@@ -1208,7 +1280,7 @@ export default function HomeScreen() {
                 const errCount = videoLoadErrors[vKey] || 0;
                 const showFallback = showTextFallback[vKey];
                 return (
-                  <View key={i} style={styles.videoWrapper}>
+                  <View key={`${currentQuestion}-${i}`} style={styles.videoWrapper}>
                     {showFallback ? (
                       <View style={styles.videoFallback}>
                         <Text style={styles.videoFallbackIcon}>⚠</Text>
@@ -1218,11 +1290,42 @@ export default function HomeScreen() {
                       <Video
                         source={src} style={styles.mediaVideo}
                         useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
+                        onFullscreenUpdate={({ fullscreenUpdate }) => {
+                          if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
+                            ScreenOrientation.unlockAsync();
+                          } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
+                            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                          }
+                        }}
                         onPlaybackStatusUpdate={(status) => {
-                          if (status.isLoaded && status.durationMillis > 0 && !isWatched) {
-                            const pct = status.positionMillis / status.durationMillis;
-                            if (pct >= 0.9 || status.didJustFinish) {
-                              setVideoWatched(prev => ({ ...prev, [vKey]: true }));
+                          if (status.isLoaded && status.durationMillis > 0) {
+                            if (!isWatched) {
+                              const pct = status.positionMillis / status.durationMillis;
+                              if (pct >= 0.9 || status.didJustFinish) {
+                                setVideoWatched(prev => ({ ...prev, [vKey]: true }));
+                              }
+                            }
+                            if (status.isPlaying) {
+                              const pos = status.positionMillis;
+                              if (videoLastProgress.current[vKey] === pos) {
+                                if (!videoStallTimers.current[vKey]) {
+                                  videoStallTimers.current[vKey] = setTimeout(() => {
+                                    setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
+                                  }, 15000);
+                                }
+                              } else {
+                                videoLastProgress.current[vKey] = pos;
+                                if (videoStallTimers.current[vKey]) {
+                                  clearTimeout(videoStallTimers.current[vKey]);
+                                  videoStallTimers.current[vKey] = null;
+                                }
+                              }
+                            }
+                          } else if (status.isBuffering && status.positionMillis > 0) {
+                            if (!videoStallTimers.current[vKey]) {
+                              videoStallTimers.current[vKey] = setTimeout(() => {
+                                setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
+                              }, 15000);
                             }
                           }
                         }}
@@ -1261,18 +1364,26 @@ export default function HomeScreen() {
                 {belgradeQuestions[currentQuestion].question}
               </Text>
 
-              {renderAnswerSection(belgradeQuestions[currentQuestion])}
+              {currentQuestion === furthestQuestion ? (
+                <>
+                  {renderAnswerSection(belgradeQuestions[currentQuestion])}
 
-              {isUploading ? (
-                <View style={styles.uploadingContainer}>
-                  <ActivityIndicator size="large" color={C.primary} />
-                  <Text style={styles.uploadingText}>{t('savingTelemetry')}</Text>
-                </View>
+                  {isUploading ? (
+                    <View style={styles.uploadingContainer}>
+                      <ActivityIndicator size="large" color={C.primary} />
+                      <Text style={styles.uploadingText}>{t('savingTelemetry')}</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity style={styles.primaryButton} onPress={submitAnswer}>
+                      <Text style={styles.primaryButtonText}>
+                        {currentQuestion === belgradeQuestions.length - 1 ? t('finishRace') : t('submit')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               ) : (
-                <TouchableOpacity style={styles.primaryButton} onPress={submitAnswer}>
-                  <Text style={styles.primaryButtonText}>
-                    {currentQuestion === belgradeQuestions.length - 1 ? t('finishRace') : t('submit')}
-                  </Text>
+                <TouchableOpacity style={styles.primaryButton} onPress={() => setCurrentQuestion(furthestQuestion)}>
+                  <Text style={styles.primaryButtonText}>{t('returnToCurrent')}</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -1292,6 +1403,13 @@ export default function HomeScreen() {
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay
                 useNativeControls
+                onFullscreenUpdate={({ fullscreenUpdate }) => {
+                  if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
+                    ScreenOrientation.unlockAsync();
+                  } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
+                    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                  }
+                }}
                 onPlaybackStatusUpdate={(status) => {
                   if (status.isLoaded && status.didJustFinish) handleFinishVideoEnd();
                 }}
@@ -1304,7 +1422,8 @@ export default function HomeScreen() {
             </>
           ) : (
             <View style={styles.endResultsContainer}>
-              <Text style={styles.endTrophy}>*</Text>
+              <Text style={styles.endTrophy}>🏆</Text>
+              <Text style={[styles.endCongrats, textAlign]}>{t('congratulations')}</Text>
               <Text style={[styles.endTitle, textAlign]}>{t('raceComplete')}</Text>
               <Text style={[styles.endCity, textAlign]}>{t('belgradCircuit')}</Text>
               <View style={styles.endTimeCard}>
@@ -1320,6 +1439,7 @@ export default function HomeScreen() {
               >
                 <Text style={styles.feedbackButtonText}>{t('feedbackButton')}</Text>
               </TouchableOpacity>
+              <Text style={styles.feedbackSubtext}>{t('feedbackSubtext')}</Text>
             </View>
           )}
         </View>
@@ -1365,6 +1485,11 @@ const styles = StyleSheet.create({
   timerContainer: { backgroundColor: C.surfaceHigh, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: C.primary },
   timerLabel: { fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 2 },
   timerText: { fontSize: 22, fontWeight: '900', color: C.primary, letterSpacing: 2 },
+  headerButtons: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  backButton: { backgroundColor: C.surfaceHigh, paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4, borderWidth: 1, borderColor: C.outline },
+  backButtonText: { color: C.onVariant, fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+  nextButton: { backgroundColor: C.surfaceHigh, paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4, borderWidth: 1, borderColor: C.primary },
+  nextButtonText: { color: C.primary, fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
   exitButton: { backgroundColor: C.danger, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 4, borderWidth: 1, borderColor: C.dangerText },
   exitButtonText: { color: C.dangerText, fontSize: 13, fontWeight: '800', letterSpacing: 2 },
   gameScroll: { flex: 1 },
@@ -1391,7 +1516,8 @@ const styles = StyleSheet.create({
   uploadingContainer: { alignItems: 'center', marginVertical: 24 },
   uploadingText: { color: C.onVariant, fontSize: 11, marginTop: 12, letterSpacing: 3, textTransform: 'uppercase' },
   endResultsContainer: { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 32, width: '100%' },
-  endTrophy: { fontSize: 72, marginBottom: 16, color: C.secondary },
+  endTrophy: { fontSize: 72, marginBottom: 16 },
+  endCongrats: { fontSize: 18, fontWeight: '700', color: C.secondary, textAlign: 'center', marginBottom: 12, lineHeight: 26 },
   endTitle: { fontSize: 32, fontWeight: '900', color: C.onSurface, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase' },
   endCity: { fontSize: 13, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 36 },
   endTimeCard: { backgroundColor: C.surfaceLow, borderRadius: 8, borderWidth: 1, borderColor: C.secondary, paddingVertical: 20, paddingHorizontal: 40, alignItems: 'center', marginBottom: 36, width: '100%', shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.2, shadowRadius: 24 },
@@ -1432,4 +1558,5 @@ const styles = StyleSheet.create({
   showInstructionsBtnText: { color: C.primary, fontSize: 12, fontWeight: '700', letterSpacing: 2 },
   feedbackButton: { width: '100%', paddingVertical: 14, borderRadius: 4, borderWidth: 1.5, borderColor: C.onVariant, alignItems: 'center', marginTop: 4 },
   feedbackButtonText: { color: C.onVariant, fontSize: 13, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' },
+  feedbackSubtext: { color: C.onVariant, fontSize: 13, marginTop: 10, textAlign: 'center', letterSpacing: 0.3 },
 });

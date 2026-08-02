@@ -176,6 +176,11 @@ const translations = {
     longRace: 'LONG RACE',
     shortRaceDesc: '7 missions — a faster adventure through the city highlights',
     longRaceDesc: '9 missions — the full experience with every challenge',
+    backButton: 'BACK',
+    nextButton: 'NEXT',
+    returnToCurrent: 'RETURN TO CURRENT MISSION',
+    congratulations: "Congratulations! You've successfully completed the race!",
+    feedbackSubtext: 'Takes a minute — and helps us a lot.',
 
   },
 
@@ -348,6 +353,11 @@ const translations = {
     longRace: 'מירוץ ארוך',
     shortRaceDesc: '7 משימות — הרפתקה מהירה דרך נקודות החן של העיר',
     longRaceDesc: '9 משימות — החוויה המלאה עם כל האתגרים',
+    backButton: 'חזרה',
+    nextButton: 'הבא',
+    returnToCurrent: 'חזרה למשימה הנוכחית',
+    congratulations: 'ברכותינו! סיימתם בהצלחה את המירוץ!',
+    feedbackSubtext: 'לוקח דקה — ועוזר לנו המון.',
 
   },
 
@@ -521,6 +531,11 @@ const translations = {
     longRace: 'DUGA TRKA',
     shortRaceDesc: '7 misija — brža avantura kroz gradske znamenitosti',
     longRaceDesc: '9 misija — potpuno iskustvo sa svim izazovima',
+    backButton: 'NAZAD',
+    nextButton: 'DALJE',
+    returnToCurrent: 'VRATI SE NA TRENUTNU MISIJU',
+    congratulations: 'Čestitamo! Uspešno ste završili trku!',
+    feedbackSubtext: 'Traje samo minut — a nama mnogo znači.',
 
   },
 };

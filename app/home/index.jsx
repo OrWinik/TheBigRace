@@ -24,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import useAutoFullscreenOnRotate from '../../hooks/useAutoFullscreenOnRotate';
 import { useTranslation } from '../../i18n';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -401,7 +402,25 @@ export default function HomeScreen() {
   const skipFinishTimerRef = useRef(null);
   const welcomeVideoRef = useRef(null);
   const finishVideoRef = useRef(null);
+  const missionVideoRefs = useRef({});
+  const activeVideoKey = useRef(null);
   const appStateRef = useRef(AppState.currentState);
+
+  // ── Turn the phone sideways to watch a mission video full screen ───────────
+  // Only while a mission with a video is on screen; the screen itself stays
+  // portrait, so nothing else in the app is affected.
+  const missionHasVideo =
+    showGameModal && (belgradeQuestions[currentQuestion]?.videos?.length ?? 0) > 0;
+
+  const getActiveMissionVideo = useCallback(() => {
+    const refs = missionVideoRefs.current;
+    return refs[activeVideoKey.current] ?? refs[`${currentQuestion}-0`] ?? null;
+  }, [currentQuestion]);
+
+  const rotateFullscreen = useAutoFullscreenOnRotate({
+    enabled: missionHasVideo,
+    getVideoRef: getActiveMissionVideo,
+  });
 
   const auth = getAuth();
   const db = getDatabase();
@@ -1288,17 +1307,22 @@ export default function HomeScreen() {
                       </View>
                     ) : (
                       <Video
+                        ref={(r) => { missionVideoRefs.current[vKey] = r; }}
                         source={src} style={styles.mediaVideo}
                         useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
                         onFullscreenUpdate={({ fullscreenUpdate }) => {
                           if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
+                            activeVideoKey.current = vKey;
+                            rotateFullscreen.handlePresentedByViewer();
                             ScreenOrientation.unlockAsync();
                           } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
+                            rotateFullscreen.handleDismissedByViewer();
                             ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
                           }
                         }}
                         onPlaybackStatusUpdate={(status) => {
                           if (status.isLoaded && status.durationMillis > 0) {
+                            if (status.isPlaying) activeVideoKey.current = vKey;
                             if (!isWatched) {
                               const pct = status.positionMillis / status.durationMillis;
                               if (pct >= 0.9 || status.didJustFinish) {

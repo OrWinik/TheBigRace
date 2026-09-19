@@ -10,22 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { BW, C, F, R } from '../../constants/theme';
 import { useTranslation } from '../../i18n';
-
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  base:          '#060e20',
-  surfaceLow:    '#091328',
-  surfaceHigh:   '#192540',
-  surfaceBright: '#1f2b49',
-  outline:       '#40485d',
-  primary:       '#85adff',
-  secondary:     '#69f6b8',
-  gold:          '#f5c518',
-  onSurface:     '#dee5ff',
-  onVariant:     '#a3aac4',
-  dim:           '#2a3348',
-};
 
 const CITIES = ['Belgrade'];
 
@@ -105,35 +91,41 @@ export default function LeaderboardScreen() {
 
   const renderRow = (entry, index) => {
     const rank    = index + 1;
-    const isFirst = rank === 1;
-    const isYou   = entry.uid === currentUid;
-    const isTop5  = rank <= 5;
+    const isYou    = entry.uid === currentUid;
+    const isFirst  = rank === 1 && !isYou;
+    const isSecond = rank === 2 && !isYou;
+    const isThird  = rank === 3 && !isYou;
+    const isTop5   = rank <= 5;
 
     const rStyle = [
       styles.row,
       isRTL && styles.rowRTL,
       isFirst && styles.rowFirst,
+      isSecond && styles.rowPodium,
+      isThird && styles.rowPodium,
       isYou   && styles.rowYou,
       !isFirst && !isYou && isTop5 && styles.rowTop5,
     ];
 
     const rankStyle = [
       styles.rankText,
-      isFirst && styles.rankGold,
-      isYou   && styles.rankGreen,
+      isFirst  && styles.rankGold,
+      isSecond && styles.rankSilver,
+      isThird  && styles.rankBronze,
+      isYou    && styles.rankYou,
     ];
 
     const nameStyle = [
       styles.nameText,
       isFirst && styles.nameGold,
-      isYou   && styles.nameGreen,
+      isYou   && styles.nameYou,
       !isTop5  && styles.nameDim,
     ];
 
     const timeStyle = [
       styles.timeText,
       isFirst && styles.timeGold,
-      isYou   && styles.timeGreen,
+      isYou   && styles.timeYou,
       !isTop5  && styles.timeDim,
       isRTL && { textAlign: 'left' },
     ];
@@ -141,8 +133,10 @@ export default function LeaderboardScreen() {
     return (
       <View key={entry.uid} style={rStyle}>
         {/* Accent bar: flipped side for RTL */}
-        {isFirst && <View style={[styles.accentBarGold,  isRTL && styles.accentBarRight]} />}
-        {isYou   && <View style={[styles.accentBarGreen, isRTL && styles.accentBarRight]} />}
+        {isFirst  && <View style={[styles.accentBarGold,   isRTL && styles.accentBarRight]} />}
+        {isSecond && <View style={[styles.accentBarSilver, isRTL && styles.accentBarRight]} />}
+        {isThird  && <View style={[styles.accentBarBronze, isRTL && styles.accentBarRight]} />}
+        {isYou    && <View style={[styles.accentBarYou,    isRTL && styles.accentBarRight]} />}
 
         <Text style={rankStyle}>{padRank(rank)}</Text>
 
@@ -223,52 +217,57 @@ const styles = StyleSheet.create({
   scroll:        { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 40 },
 
-  feedLabel: { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 },
-  pageTitle: { fontSize: 34, fontWeight: '900', color: C.onSurface, letterSpacing: 1, marginBottom: 28 },
+  feedLabel: { fontSize: 11, fontFamily: F.semi, color: C.accent, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 },
+  pageTitle: { fontSize: 36, fontFamily: F.display, color: C.onSurface, letterSpacing: 0.5, marginBottom: 28 },
 
-  citySelectLabel: { fontSize: 10, fontWeight: '700', color: C.outline, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10 },
+  citySelectLabel: { fontSize: 10, fontFamily: F.semi, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10 },
   cityList:        { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 32 },
-  cityPill:        { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 4, borderWidth: 1, borderColor: C.outline, backgroundColor: 'transparent', marginRight: 8, marginBottom: 8 },
-  cityPillActive:  { backgroundColor: C.surfaceHigh, borderColor: C.secondary },
-  cityPillText:    { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 2 },
-  cityPillTextActive: { color: C.secondary },
+  cityPill:        { paddingHorizontal: 16, paddingVertical: 8, borderRadius: R.pill, borderWidth: BW.card, borderColor: C.outline, backgroundColor: C.surfaceLow, marginRight: 8, marginBottom: 8 },
+  cityPillActive:  { backgroundColor: C.blue },
+  cityPillText:    { fontSize: 11, fontFamily: F.semi, color: C.onSurface, letterSpacing: 2 },
+  cityPillTextActive: { color: C.onAccent },
 
   loadingBlock:  { alignItems: 'center', paddingTop: 60 },
-  loadingText:   { fontSize: 11, color: C.onVariant, letterSpacing: 3, marginTop: 16 },
+  loadingText:   { fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 3, marginTop: 16 },
   emptyBlock:    { alignItems: 'center', paddingTop: 60 },
-  emptyText:     { fontSize: 13, fontWeight: '700', color: C.onVariant, letterSpacing: 2, marginBottom: 8 },
-  emptySubtext:  { fontSize: 13, color: C.dim },
+  emptyText:     { fontSize: 13, fontFamily: F.bold, color: C.onSurface, letterSpacing: 2, marginBottom: 8 },
+  emptySubtext:  { fontSize: 13, fontFamily: F.body, color: C.onVariant },
 
   leaderboardBlock: {},
 
-  row:     { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceLow, borderRadius: 8, paddingVertical: 16, paddingRight: 18, paddingLeft: 18, overflow: 'hidden', marginBottom: 12 },
-  rowRTL:  { paddingLeft: 18, paddingRight: 14 },
-  rowFirst:{ backgroundColor: C.surfaceHigh, paddingLeft: 14 },
-  rowYou:  { backgroundColor: C.surfaceBright, paddingLeft: 14 },
-  rowTop5: { backgroundColor: C.surfaceLow },
+  row:      { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceLow, borderRadius: R.md, borderWidth: BW.card, borderColor: C.outline, paddingVertical: 16, paddingRight: 18, paddingLeft: 18, overflow: 'hidden', marginBottom: 10 },
+  rowRTL:   { paddingLeft: 18, paddingRight: 14 },
+  rowFirst: { backgroundColor: C.gold, paddingLeft: 14 },
+  rowPodium:{ backgroundColor: C.surfaceLow, paddingLeft: 14 },
+  rowYou:   { backgroundColor: C.accent, paddingLeft: 14 },
+  rowTop5:  { backgroundColor: C.surfaceLow },
 
-  accentBarGold:  { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: C.gold, borderTopLeftRadius: 8, borderBottomLeftRadius: 8 },
-  accentBarGreen: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: C.secondary, borderTopLeftRadius: 8, borderBottomLeftRadius: 8 },
-  accentBarRight: { left: undefined, right: 0, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: 8, borderBottomRightRadius: 8 },
+  accentBarGold:   { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: C.gold },
+  accentBarSilver: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: C.silver },
+  accentBarBronze: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: C.bronze },
+  accentBarYou:    { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: C.outline },
+  accentBarRight:  { left: undefined, right: 0 },
 
-  rankText:  { width: 36, fontSize: 18, fontWeight: '800', color: C.onVariant, letterSpacing: 1 },
-  rankGold:  { color: C.gold },
-  rankGreen: { color: C.secondary },
+  rankText:   { width: 36, fontSize: 18, fontFamily: F.bold, color: C.onSurface, letterSpacing: 1 },
+  rankGold:   { color: C.onSurface },
+  rankSilver: { color: C.silver },
+  rankBronze: { color: C.bronze },
+  rankYou:    { color: C.onAccent },
 
   nameBlock: { flex: 1, paddingHorizontal: 4, minWidth: 0 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  nameText:  { fontSize: 15, fontWeight: '800', color: C.onSurface, letterSpacing: 0.5 },
-  nameGold:  { color: C.gold },
-  nameGreen: { color: C.secondary },
-  nameDim:   { color: C.onVariant, fontWeight: '600', fontSize: 13 },
+  nameRow:   { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  nameText:  { fontSize: 15, fontFamily: F.bold, color: C.onSurface, letterSpacing: 0.5 },
+  nameGold:  { color: C.onSurface },
+  nameYou:   { color: C.onAccent },
+  nameDim:   { color: C.onVariant, fontFamily: F.semi, fontSize: 13 },
 
-  youBadge: { backgroundColor: C.secondary, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
-  youBadgeText: { fontSize: 9, fontWeight: '900', color: C.base, letterSpacing: 1 },
+  youBadge:     { backgroundColor: C.onAccent, paddingHorizontal: 7, paddingVertical: 2, borderRadius: R.xs },
+  youBadgeText: { fontSize: 9, fontFamily: F.bold, color: C.accent, letterSpacing: 1 },
 
-  globalRankText: { fontSize: 10, color: C.onVariant, letterSpacing: 2, marginTop: 3, textTransform: 'uppercase' },
+  globalRankText: { fontSize: 10, fontFamily: F.semi, color: C.onAccent, letterSpacing: 2, marginTop: 3, textTransform: 'uppercase' },
 
-  timeText: { fontSize: 17, fontWeight: '800', color: C.onSurface, letterSpacing: 1, textAlign: 'right', minWidth: 68 },
-  timeGold:  { color: C.gold },
-  timeGreen: { color: C.secondary },
-  timeDim:   { color: C.onVariant, fontSize: 14, fontWeight: '600' },
+  timeText:  { fontSize: 17, fontFamily: F.bold, color: C.onSurface, letterSpacing: 0.5, textAlign: 'right', minWidth: 68 },
+  timeGold:  { color: C.onSurface },
+  timeYou:   { color: C.onAccent },
+  timeDim:   { color: C.onVariant, fontSize: 14, fontFamily: F.semi },
 });

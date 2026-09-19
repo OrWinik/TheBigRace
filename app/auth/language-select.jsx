@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BW, C, F, R } from '../../constants/theme';
 import { useTranslation } from '../../i18n';
 
 const LANGUAGES = [
@@ -8,16 +9,6 @@ const LANGUAGES = [
   { code: 'he', label: 'עברית', flag: '\u{1F1EE}\u{1F1F1}' },
   { code: 'sr', label: 'Srpski', flag: '\u{1F1F7}\u{1F1F8}' },
 ];
-
-const C = {
-  base:        '#060e20',
-  surfaceLow:  '#091328',
-  surfaceHigh: '#192540',
-  primary:     '#85adff',
-  secondary:   '#69f6b8',
-  onSurface:   '#dee5ff',
-  onVariant:   '#a3aac4',
-};
 
 export default function LanguageSelectScreen() {
   const { language, setLanguage, t } = useTranslation();
@@ -59,14 +50,14 @@ export default function LanguageSelectScreen() {
 
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: C.base, justifyContent: 'center', alignItems: 'center', padding: 28 },
-  brandTitle:       { fontSize: 42, fontWeight: '900', fontStyle: 'italic', color: C.primary, letterSpacing: 2, marginBottom: 48 },
-  heading:          { fontSize: 13, fontWeight: '700', color: C.onVariant, letterSpacing: 4, marginBottom: 32 },
-  langButton:       { flexDirection: 'row', alignItems: 'center', width: '100%', backgroundColor: C.surfaceLow, borderRadius: 10, paddingVertical: 18, paddingHorizontal: 20, marginBottom: 12, borderWidth: 1.5, borderColor: C.surfaceHigh },
-  langButtonActive: { borderColor: C.secondary, backgroundColor: C.surfaceHigh },
+  brandTitle:       { fontSize: 38, fontFamily: F.display, color: C.onSurface, letterSpacing: 0.5, marginBottom: 40 },
+  heading:          { fontSize: 12, fontFamily: F.semi, color: C.blue, letterSpacing: 4, marginBottom: 32, textTransform: 'uppercase' },
+  langButton:       { flexDirection: 'row', alignItems: 'center', width: '100%', backgroundColor: C.surfaceLow, borderRadius: R.md, paddingVertical: 18, paddingHorizontal: 20, marginBottom: 12, borderWidth: BW.card, borderColor: C.outline },
+  langButtonActive: { backgroundColor: C.gold },
   flag:             { fontSize: 28, marginRight: 16 },
-  langLabel:        { flex: 1, fontSize: 18, fontWeight: '700', color: C.onSurface, letterSpacing: 1 },
-  langLabelActive:  { color: C.secondary },
-  check:            { fontSize: 20, color: C.secondary, fontWeight: '700' },
-  continueButton:   { width: '100%', paddingVertical: 18, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', marginTop: 28, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
-  continueText:     { color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3 },
+  langLabel:        { flex: 1, fontSize: 18, fontFamily: F.semi, color: C.onSurface, letterSpacing: 0.5 },
+  langLabelActive:  { fontFamily: F.bold },
+  check:            { fontSize: 20, color: C.onSurface, fontFamily: F.bold },
+  continueButton:   { width: '100%', paddingVertical: 18, borderRadius: R.md, backgroundColor: C.accent, borderWidth: BW.card, borderColor: C.outline, alignItems: 'center', marginTop: 28 },
+  continueText:     { color: C.onAccent, fontSize: 14, fontFamily: F.bold, letterSpacing: 3 },
 });

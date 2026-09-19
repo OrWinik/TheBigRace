@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import LanguagePicker from '../../components/LanguagePicker';
+import { BW, C, F, R } from '../../constants/theme';
 import { useTranslation } from '../../i18n';
 
 export default function SignUpScreen() {
@@ -203,47 +204,34 @@ export default function SignUpScreen() {
   );
 }
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  base:         '#060e20',
-  surfaceLow:   '#091328',
-  surfaceHigh:  '#192540',
-  surfaceBright:'#1f2b49',
-  outline:      '#40485d',
-  primary:      '#85adff',
-  secondary:    '#69f6b8',
-  onSurface:    '#dee5ff',
-  onVariant:    '#a3aac4',
-};
-
 const styles = StyleSheet.create({
   scrollContainer:  { flex: 1, backgroundColor: C.base },
   scrollContent:    { flexGrow: 1, paddingHorizontal: 24, paddingTop: 60, paddingBottom: 48 },
 
   topBar:           { flexDirection: 'row', alignItems: 'center', marginBottom: 28, marginTop: 20 },
-  topBarDash:       { width: 28, height: 2, backgroundColor: C.secondary, marginRight: 12, borderRadius: 2 },
-  topBarBrand:      { fontSize: 16, fontWeight: '800', fontStyle: 'italic', color: C.primary, letterSpacing: 2 },
+  topBarDash:       { width: 28, height: 4, backgroundColor: C.accent, marginRight: 12, borderRadius: 2 },
+  topBarBrand:      { fontSize: 16, fontFamily: F.display, color: C.onSurface, letterSpacing: 0.5 },
 
   statusRow:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 32 },
-  statusDot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: C.secondary, marginTop: 4, marginRight: 10 },
-  statusText:       { flex: 1, fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 2, lineHeight: 18, textTransform: 'uppercase' },
+  statusDot:        { width: 10, height: 10, borderRadius: 5, backgroundColor: C.gold, borderWidth: 1.5, borderColor: C.outline, marginTop: 4, marginRight: 10 },
+  statusText:       { flex: 1, fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 2, lineHeight: 18, textTransform: 'uppercase' },
 
-  card:             { backgroundColor: C.surfaceLow, borderRadius: 12, padding: 24, borderWidth: 1, borderColor: C.surfaceHigh, marginBottom: 24 },
+  card:             { backgroundColor: C.surfaceLow, borderRadius: R.lg, padding: 24, borderWidth: BW.card, borderColor: C.outline, marginBottom: 24 },
 
   fieldBlock:       { marginBottom: 20 },
-  fieldLabel:       { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
-  inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceHigh, borderRadius: 6, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: 14 },
-  inputFocused:     { backgroundColor: C.surfaceBright, borderColor: C.primary },
-  inputInner:       { flex: 1, paddingVertical: 14, fontSize: 14, color: C.onSurface, letterSpacing: 1 },
+  fieldLabel:       { fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
+  inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceBright, borderRadius: R.md, borderWidth: BW.card, borderColor: C.outline, paddingHorizontal: 14 },
+  inputFocused:     { backgroundColor: C.goldSoft, borderColor: C.gold },
+  inputInner:       { flex: 1, paddingVertical: 14, fontSize: 14, fontFamily: F.body, color: C.onSurface, letterSpacing: 0.5 },
   eyeButton:        { paddingLeft: 10, paddingVertical: 14 },
   eyeIcon:          { fontSize: 16 },
 
-  errorText:        { color: '#ff6b6b', fontSize: 13, marginBottom: 16, letterSpacing: 0.3 },
+  errorText:        { color: C.dangerText, fontSize: 13, fontFamily: F.semi, marginBottom: 16, letterSpacing: 0.3 },
 
-  primaryButton:    { width: '100%', paddingVertical: 18, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 20, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
-  primaryButtonText:{ color: C.base, fontSize: 14, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
+  primaryButton:    { width: '100%', paddingVertical: 18, borderRadius: R.md, backgroundColor: C.accent, borderWidth: BW.card, borderColor: C.outline, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  primaryButtonText:{ color: C.onAccent, fontSize: 14, fontFamily: F.bold, letterSpacing: 3, textTransform: 'uppercase' },
 
   signInRow:        { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' },
-  signInPrompt:     { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 2, textTransform: 'uppercase' },
-  signInLink:       { fontSize: 11, fontWeight: '800', color: C.secondary, letterSpacing: 2, textTransform: 'uppercase' },
+  signInPrompt:     { fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 2, textTransform: 'uppercase' },
+  signInLink:       { fontSize: 11, fontFamily: F.bold, color: C.accent, letterSpacing: 2, textTransform: 'uppercase' },
 });

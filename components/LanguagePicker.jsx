@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BW, C, F, R } from '../constants/theme';
 import { useTranslation } from '../i18n';
 
 const LANGUAGES = [
@@ -7,17 +8,6 @@ const LANGUAGES = [
   { code: 'he', label: 'עברית', flag: '\u{1F1EE}\u{1F1F1}' },
   { code: 'sr', label: 'Srpski', flag: '\u{1F1F7}\u{1F1F8}' },
 ];
-
-const C = {
-  base:        '#060e20',
-  surfaceLow:  '#091328',
-  surfaceHigh: '#192540',
-  surfaceBright:'#1f2b49',
-  primary:     '#85adff',
-  secondary:   '#69f6b8',
-  onSurface:   '#dee5ff',
-  onVariant:   '#a3aac4',
-};
 
 export default function LanguagePicker() {
   const { language, setLanguage } = useTranslation();
@@ -59,17 +49,17 @@ export default function LanguagePicker() {
 }
 
 const styles = StyleSheet.create({
-  trigger:          { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: 'rgba(25,37,64,0.7)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(133,173,255,0.3)', marginBottom: 20 },
+  trigger:          { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: C.surfaceLow, paddingHorizontal: 14, paddingVertical: 8, borderRadius: R.pill, borderWidth: BW.thin, borderColor: C.outline, marginBottom: 20 },
   triggerFlag:      { fontSize: 18, marginRight: 8 },
-  triggerLabel:     { fontSize: 13, fontWeight: '700', color: C.onVariant, letterSpacing: 1 },
-  overlay:          { flex: 1, backgroundColor: 'rgba(6,14,32,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  card:             { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, padding: 20, borderWidth: 1, borderColor: C.surfaceHigh },
-  option:           { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, borderRadius: 8, marginBottom: 8, borderWidth: 1.5, borderColor: 'transparent' },
-  optionActive:     { borderColor: C.secondary, backgroundColor: C.surfaceHigh },
+  triggerLabel:     { fontSize: 13, fontFamily: F.semi, color: C.onSurface, letterSpacing: 1 },
+  overlay:          { flex: 1, backgroundColor: C.scrim, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  card:             { width: '100%', backgroundColor: C.surfaceLow, borderRadius: R.lg, padding: 20, borderWidth: BW.card, borderColor: C.outline },
+  option:           { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, borderRadius: R.md, marginBottom: 8, borderWidth: BW.card, borderColor: 'transparent' },
+  optionActive:     { borderColor: C.outline, backgroundColor: C.gold },
   optionFlag:       { fontSize: 26, marginRight: 14 },
-  optionLabel:      { flex: 1, fontSize: 17, fontWeight: '700', color: C.onSurface },
-  optionLabelActive:{ color: C.secondary },
-  check:            { fontSize: 18, color: C.secondary, fontWeight: '700' },
+  optionLabel:      { flex: 1, fontSize: 17, fontFamily: F.semi, color: C.onSurface },
+  optionLabelActive:{ fontFamily: F.bold },
+  check:            { fontSize: 18, color: C.onSurface, fontFamily: F.bold },
   closeBtn:         { alignSelf: 'center', marginTop: 8, padding: 8 },
-  closeBtnText:     { fontSize: 18, color: C.onVariant, fontWeight: '700' },
+  closeBtnText:     { fontSize: 18, color: C.onVariant, fontFamily: F.bold },
 });

@@ -1,26 +1,27 @@
 import { Tabs } from 'expo-router';
 import { Image } from 'react-native';
+import { C, F } from '../../constants/theme';
 
 export default function BottomBar() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#69f6b8',
-        tabBarInactiveTintColor: '#a3aac4',
+        tabBarActiveTintColor: C.accent,
+        tabBarInactiveTintColor: C.onVariant,
         headerShown: false,
         tabBarStyle: {
           height: 80,
           paddingBottom: 5,
           paddingTop: 5,
-          backgroundColor: '#091328',
-          borderTopWidth: 1,
-          borderTopColor: '#192540',
+          backgroundColor: C.surfaceLow,
+          borderTopWidth: 2.5,
+          borderTopColor: C.outline,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontFamily: F.semi,
           letterSpacing: 1,
         },
       }}

@@ -14,6 +14,7 @@ import {
   View
 } from 'react-native';
 import LanguagePicker from '../../components/LanguagePicker';
+import { BW, C, F, R } from '../../constants/theme';
 import { useTranslation } from '../../i18n';
 
 export default function SignInScreen() {
@@ -104,7 +105,7 @@ export default function SignInScreen() {
           <TextInput
             style={[styles.input, emailFocused && styles.inputFocused, textAlign]}
             placeholder="you@gmail.com"
-            placeholderTextColor="#40485d"
+            placeholderTextColor={C.onVariant}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -122,7 +123,7 @@ export default function SignInScreen() {
             <TextInput
               style={[styles.inputInner, textAlign]}
               placeholder="••••••••"
-              placeholderTextColor="#40485d"
+              placeholderTextColor={C.onVariant}
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
@@ -150,7 +151,7 @@ export default function SignInScreen() {
         {/* Sign In button */}
         <TouchableOpacity style={styles.primaryButton} onPress={handleSignIn} disabled={loading}>
           {loading
-            ? <ActivityIndicator size="small" color="#060e20" />
+            ? <ActivityIndicator size="small" color={C.onAccent} />
             : <Text style={styles.primaryButtonText}>{t('signInButton')}</Text>
           }
         </TouchableOpacity>
@@ -182,7 +183,7 @@ export default function SignInScreen() {
             <TextInput
               style={[styles.input, textAlign]}
               placeholder="you@gmail.com"
-              placeholderTextColor="#40485d"
+              placeholderTextColor={C.onVariant}
               value={emailForgotPassword}
               onChangeText={setEmailForgotPassword}
               autoCapitalize="none"
@@ -206,7 +207,7 @@ export default function SignInScreen() {
               disabled={loadingForgotPassword}
             >
               {loadingForgotPassword
-                ? <ActivityIndicator size="small" color="#060e20" />
+                ? <ActivityIndicator size="small" color={C.onAccent} />
                 : <Text style={styles.primaryButtonText}>{t('sendResetLink')}</Text>
               }
             </TouchableOpacity>
@@ -217,59 +218,46 @@ export default function SignInScreen() {
   );
 }
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  base:         '#060e20',
-  surfaceLow:   '#091328',
-  surfaceHigh:  '#192540',
-  surfaceBright:'#1f2b49',
-  outline:      '#40485d',
-  primary:      '#85adff',
-  secondary:    '#69f6b8',
-  onSurface:    '#dee5ff',
-  onVariant:    '#a3aac4',
-};
-
 const styles = StyleSheet.create({
   scrollContainer:  { flex: 1, backgroundColor: C.base },
   scrollContent:    { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60, paddingHorizontal: 24 },
 
   headerBlock:      { width: '100%', alignItems: 'flex-start', marginBottom: 40, paddingLeft: 4 },
-  brandTitle:       { fontSize: 42, fontWeight: '900', fontStyle: 'italic', color: C.primary, letterSpacing: 2, lineHeight: 46 },
+  brandTitle:       { fontSize: 38, fontFamily: F.display, color: C.onSurface, letterSpacing: 0.5, lineHeight: 44 },
 
-  card:             { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, padding: 28, borderWidth: 1, borderColor: C.surfaceHigh },
-  cardHeading:      { fontSize: 26, fontWeight: '800', color: C.onSurface, marginBottom: 6, letterSpacing: 0.3 },
-  cardSubheading:   { fontSize: 14, color: C.onVariant, marginBottom: 32, lineHeight: 20 },
+  card:             { width: '100%', backgroundColor: C.surfaceLow, borderRadius: R.lg, padding: 28, borderWidth: BW.card, borderColor: C.outline },
+  cardHeading:      { fontSize: 26, fontFamily: F.display, color: C.onSurface, marginBottom: 6, letterSpacing: 0.3 },
+  cardSubheading:   { fontSize: 14, fontFamily: F.body, color: C.onVariant, marginBottom: 32, lineHeight: 20 },
 
   fieldBlock:       { marginBottom: 20 },
-  fieldLabel:       { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
-  input:            { backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: C.onSurface },
-  inputFocused:     { backgroundColor: C.surfaceBright, borderColor: C.primary },
-  inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.base, borderWidth: 1, borderColor: C.outline, borderRadius: 6, paddingHorizontal: 16 },
-  inputInner:       { flex: 1, paddingVertical: 14, fontSize: 15, color: C.onSurface },
+  fieldLabel:       { fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 },
+  input:            { backgroundColor: C.surfaceBright, borderWidth: BW.card, borderColor: C.outline, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, fontFamily: F.body, color: C.onSurface },
+  inputFocused:     { backgroundColor: C.goldSoft, borderColor: C.gold },
+  inputRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surfaceBright, borderWidth: BW.card, borderColor: C.outline, borderRadius: R.md, paddingHorizontal: 16 },
+  inputInner:       { flex: 1, paddingVertical: 14, fontSize: 15, fontFamily: F.body, color: C.onSurface },
   eyeButton:        { paddingLeft: 12, paddingVertical: 14 },
   eyeIcon:          { fontSize: 18 },
 
-  errorText:        { color: '#ff6b6b', fontSize: 13, marginBottom: 8, letterSpacing: 0.3 },
+  errorText:        { color: C.dangerText, fontSize: 13, fontFamily: F.semi, marginBottom: 8, letterSpacing: 0.3 },
 
   forgotRow:        { alignSelf: 'flex-end', marginBottom: 28, marginTop: 4 },
-  forgotText:       { fontSize: 11, fontWeight: '700', color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase' },
+  forgotText:       { fontSize: 11, fontFamily: F.semi, color: C.onVariant, letterSpacing: 3, textTransform: 'uppercase' },
 
-  primaryButton:    { width: '100%', paddingVertical: 17, borderRadius: 4, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 24, marginTop: 15, shadowColor: C.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 8 },
-  primaryButtonText:{ color: '#060e20', fontSize: 15, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
+  primaryButton:    { width: '100%', paddingVertical: 17, borderRadius: R.md, backgroundColor: C.accent, borderWidth: BW.card, borderColor: C.outline, alignItems: 'center', justifyContent: 'center', marginBottom: 24, marginTop: 15 },
+  primaryButtonText:{ color: C.onAccent, fontSize: 15, fontFamily: F.bold, letterSpacing: 3, textTransform: 'uppercase' },
 
   signUpRow:        { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  signUpPrompt:     { fontSize: 14, color: C.onVariant },
-  signUpLink:       { fontSize: 14, fontWeight: '700', color: C.secondary },
+  signUpPrompt:     { fontSize: 14, fontFamily: F.body, color: C.onVariant },
+  signUpLink:       { fontSize: 14, fontFamily: F.bold, color: C.accent },
 
-  modalOverlay:     { flex: 1, backgroundColor: 'rgba(6,14,32,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard:        { width: '100%', backgroundColor: C.surfaceLow, borderRadius: 12, padding: 28, borderWidth: 1, borderColor: C.surfaceHigh, shadowColor: C.secondary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 32, elevation: 12 },
+  modalOverlay:     { flex: 1, backgroundColor: C.scrim, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard:        { width: '100%', backgroundColor: C.surfaceLow, borderRadius: R.lg, padding: 28, borderWidth: BW.card, borderColor: C.outline },
   modalHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  modalTitle:       { fontSize: 20, fontWeight: '800', color: C.onSurface, letterSpacing: 0.3 },
+  modalTitle:       { fontSize: 20, fontFamily: F.display, color: C.onSurface, letterSpacing: 0.3 },
   closeButton:      { padding: 4 },
-  closeButtonText:  { fontSize: 18, color: C.onVariant, fontWeight: '700' },
-  modalBody:        { fontSize: 14, color: C.onVariant, marginBottom: 24, lineHeight: 20 },
-  messageText:      { fontSize: 13, marginTop: 12, marginBottom: 8, letterSpacing: 0.3 },
-  messageSuccess:   { color: C.secondary },
-  messageError:     { color: '#ff6b6b' },
+  closeButtonText:  { fontSize: 18, color: C.onVariant, fontFamily: F.bold },
+  modalBody:        { fontSize: 14, fontFamily: F.body, color: C.onVariant, marginBottom: 24, lineHeight: 20 },
+  messageText:      { fontSize: 13, fontFamily: F.semi, marginTop: 12, marginBottom: 8, letterSpacing: 0.3 },
+  messageSuccess:   { color: C.success },
+  messageError:     { color: C.dangerText },
 });

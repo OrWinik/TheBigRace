@@ -4,9 +4,9 @@
     "slug": "TheBigRace",
     "version": "1.5",
     "orientation": "default",
-    "icon": "./assets/LogoW.png",
+    "icon": "./assets/icon-android.png",
     "scheme": "TheBigRace",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -20,8 +20,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/LogoW.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/LogoDark.png",
+        "backgroundColor": "#F4E7CE"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.OrWinik.TripTailor"
@@ -36,10 +36,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/LogoW.png",
+          "image": "./assets/LogoDark.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#F4E7CE"
         }
       ]
     ],

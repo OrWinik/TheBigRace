@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import LanguagePicker from '../../components/LanguagePicker';
 import { useTranslation } from '../../i18n';
+import { errorFields, logError, logInfo, logWarning } from '../../lib/monitoring';
 
 export default function SignUpScreen() {
   const { t, isRTL } = useTranslation();
@@ -56,9 +57,11 @@ export default function SignUpScreen() {
       const currentUser = auth.currentUser;
       await set(ref(db, `users/${currentUser.uid}/user_name`), username);
       await set(ref(db, `users/${currentUser.uid}/email`), email);
+      logInfo('sign_up', { method: 'password' }, 'Account created');
       setLoading(false);
       await checkFirstTimeLogin(userCredential.user);
     } catch (err) {
+      logWarning('sign_up_failed', { error_code: err?.code ?? null }, `Sign-up failed: ${err?.code ?? err?.message}`);
       setLoading(false);
       setErrorMessage(t('invalidEmailOrPass'));
     }
@@ -71,6 +74,8 @@ export default function SignUpScreen() {
       router.replace('/home/');
     } catch (err) {
       console.error('Error checking first-time login:', err.message);
+      logError('db_read_failed', { source: 'sign_up_first_login', ...errorFields(err) },
+        'First-login check failed after sign-up — user stays on the sign-up screen');
     }
   };
 

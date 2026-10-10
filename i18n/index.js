@@ -2,6 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { I18nManager } from 'react-native';
+import { logInfo, logWarning, setContext } from '../lib/monitoring';
 
 // ─── Translations ─────────────────────────────────────────────────────────────
 const translations = {
@@ -166,6 +167,10 @@ const translations = {
     noConnection: 'No Connection',
     noConnectionMsg: 'The video could not be loaded. Please check your internet connection and try again.',
     showInstructions: 'SHOW INSTRUCTIONS',
+    videoFailedTitle: 'Video failed to load',
+    videoFailedMsg: 'Your progress is saved. Please try again later. If this keeps happening, contact us at {email}.',
+    contactSupport: 'Email support',
+    ok: 'OK',
     choosePhotoSource: 'Add Photo',
     fromCamera: 'Take Photo',
     fromGallery: 'Choose from Gallery',
@@ -343,6 +348,10 @@ const translations = {
     noConnection: 'אין חיבור',
     noConnectionMsg: 'לא ניתן לטעון את הסרטון. אנא בדקו את החיבור לאינטרנט ונסו שוב.',
     showInstructions: 'הצג הוראות',
+    videoFailedTitle: 'הסרטון לא נטען',
+    videoFailedMsg: 'ההתקדמות שלכם נשמרה. נסו שוב מאוחר יותר. אם הבעיה חוזרת, צרו איתנו קשר בכתובת {email}.',
+    contactSupport: 'שליחת מייל לתמיכה',
+    ok: 'אישור',
     choosePhotoSource: 'הוסף תמונה',
     fromCamera: 'צלם תמונה',
     fromGallery: 'בחר מהגלריה',
@@ -521,6 +530,10 @@ const translations = {
     noConnection: 'Nema veze',
     noConnectionMsg: 'Video nije mogao da se učita. Proverite internet vezu i pokušajte ponovo.',
     showInstructions: 'PRIKAŽI UPUTSTVA',
+    videoFailedTitle: 'Video nije učitan',
+    videoFailedMsg: 'Vaš napredak je sačuvan. Pokušajte ponovo kasnije. Ako se problem ponavlja, kontaktirajte nas na {email}.',
+    contactSupport: 'Pošalji email podršci',
+    ok: 'U redu',
     choosePhotoSource: 'Dodaj fotografiju',
     fromCamera: 'Fotografišite',
     fromGallery: 'Izaberite iz galerije',
@@ -558,9 +571,20 @@ export function LanguageProvider({ children }) {
       .then(([saved, chosen]) => {
         if (saved && translations[saved]) {
           applyLanguage(saved, false);
+        } else if (chosen === 'true') {
+          logWarning('language_reset', { stored_value: saved ?? null },
+            'Language was chosen before but the saved language is missing — fell back to English');
+        }
+        const effective = saved && translations[saved] ? saved : 'en';
+        setContext({ language: effective });
+        if (I18nManager.isRTL !== (effective === 'he')) {
+          logWarning('rtl_mismatch', { language: effective, layout_rtl: I18nManager.isRTL },
+            `Language ${effective} but layout is ${I18nManager.isRTL ? 'RTL' : 'LTR'} until next launch`);
         }
         setHasChosenLanguage(chosen === 'true');
       })
+      .catch((e) => logWarning('language_load_failed', { error_message: String(e?.message ?? e) },
+        'Could not read saved language'))
       .finally(() => setLoaded(true));
   }, []);
 
@@ -575,10 +599,18 @@ export function LanguageProvider({ children }) {
       // For now the flip applies on next app launch (or you can add expo-updates).
     }
 
+    setContext({ language: code });
+    if (persist) {
+      logInfo('language_changed', { from: language, to: code, rtl_flip_pending: I18nManager.isRTL !== isRTL },
+        `Language changed ${language} → ${code}`);
+    }
     setLanguage(code);
     if (persist) {
-      AsyncStorage.setItem(STORAGE_KEY, code);
-      AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
+      Promise.all([
+        AsyncStorage.setItem(STORAGE_KEY, code),
+        AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true'),
+      ]).catch((e) => logWarning('language_save_failed', { to: code, error_message: String(e?.message ?? e) },
+        'Could not save the chosen language — it will reset on next launch'));
       setHasChosenLanguage(true);
     }
   };

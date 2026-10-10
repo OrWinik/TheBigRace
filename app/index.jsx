@@ -5,6 +5,7 @@ import { getAuth, getReactNativePersistence, initializeAuth, onAuthStateChanged,
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useTranslation } from '../i18n';
+import { setUser } from '../lib/monitoring';
 
 
 const firebaseConfig = {
@@ -40,6 +41,7 @@ export default function IndexPage() {
     }
 
     onAuthStateChanged(auth, (user) => {
+      setUser(user);
       if (user) {
         router.replace('/home');
       } else {

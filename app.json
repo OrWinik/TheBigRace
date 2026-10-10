@@ -16,7 +16,8 @@
         "NSCameraUsageDescription": "The Big Race uses your camera to capture mission photos and videos required to complete race challenges, and to set your profile picture.",
         "NSMicrophoneUsageDescription": "The Big Race uses your microphone to record short videos during race challenges that require video submissions.",
         "NSPhotoLibraryUsageDescription": "The Big Race uses your photo library to let you upload existing photos for mission submissions and to set your profile picture from your camera roll."
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +25,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.OrWinik.TripTailor"
+      "package": "com.OrWinik.TripTailor",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -40,6 +42,17 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/analytics",
+      "@react-native-firebase/crashlytics",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "dynamic"
+          }
         }
       ]
     ],

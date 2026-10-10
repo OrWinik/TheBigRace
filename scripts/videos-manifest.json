@@ -1,0 +1,51 @@
+{
+  "_comment": "Source files (as uploaded to Firebase Storage) for every race video. scripts/encode-videos.sh turns each into race_videos/v2/<lang>/<key>.mp4 — the path the app streams. Keys starting with short_ are the short-race overrides.",
+  "en": {
+    "welcome": "belg_welcome_eng.mov",
+    "final": "belg_final_eng.mov",
+    "v1": "belg_v1.mov",
+    "v2": "belg_v2.mov",
+    "v3": "belg_v3.mov",
+    "v4": "belg_v4.mov",
+    "v5": "belg_v5.mov",
+    "v6": "belg_v6.mov",
+    "v7": "belg_v7.mov",
+    "v8": "belg_v8.mov",
+    "v9": "belg_v9.mov",
+    "short_v5": "belg_v5_short_eng.mov",
+    "short_v8": "belg_v8_short_eng.mov",
+    "short_final": "belg_final_short_eng.mov"
+  },
+  "he": {
+    "welcome": "WeELCOME HEBREW sub v2.0.mp4",
+    "final": "FINAL HEBREW sub.mp4",
+    "v1": "Misija 1 HEBREW sub v2.0.mp4",
+    "v2": "Misija 2 HEBREW sub.mp4",
+    "v3": "Misija 3 HEBREW sub.mp4",
+    "v4": "Misija 4 HEBREW Sub.mp4",
+    "v5": "Misija 5 HEBREW sub.mp4",
+    "v6": "Misija 6 HEBREW sub.mp4",
+    "v7": "Misija 7 HEBREW sub.mp4",
+    "v8": "Misija 8 HEBREW sub.mp4",
+    "v9": "Misija 9 HEBREW sub.mp4",
+    "short_v5": "Misija 5 SHORT HEBREW sub.mp4",
+    "short_v8": "Misija 8 SHORT HEBREW sub.mp4",
+    "short_final": "FINAL SHORT HEBREW sub.mp4"
+  },
+  "sr": {
+    "welcome": "WELCOME SERBIAN titl.mp4",
+    "final": "FINAL SERBIAN titl.mp4",
+    "v1": "Misija 1 SERBIAN titl.mp4",
+    "v2": "Misija 2 SERBIAN titl.mp4",
+    "v3": "Misija 3 SERBIAN titl.mp4",
+    "v4": "Misija 4 SERBIAN titl.mp4",
+    "v5": "Misija 5 SERBIAN titl 2.mp4",
+    "v6": "Misija 6 SERBIAN titl.mp4",
+    "v7": "Misija 7 SERBIAN titl.mp4",
+    "v8": "Misija 8 SERBIAN titl.mp4",
+    "v9": "Misija 9 SERBIAN titl.mp4",
+    "short_v5": "Misija 5 SHORT SERBIAN titl.mov",
+    "short_v8": "Misija 8 SHORT SERBIAN titl.mov",
+    "short_final": "FINAL SHORT SERBIAN titl.mov"
+  }
+}

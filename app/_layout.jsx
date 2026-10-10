@@ -3,7 +3,11 @@ import { Slot } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { LanguageProvider } from '../i18n';
+import { installGlobalHandlers } from '../lib/monitoring';
+
+installGlobalHandlers();
 
 export default function Layout() {
   useEffect(() => {
@@ -11,11 +15,13 @@ export default function Layout() {
   }, []);
 
   return (
-    <LanguageProvider>
-      <View style={styles.container}>
-        <Slot />
-      </View>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <View style={styles.container}>
+          <Slot />
+        </View>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

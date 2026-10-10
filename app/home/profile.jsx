@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from '../../i18n';
+import { errorFields, logError } from '../../lib/monitoring';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -92,6 +93,7 @@ export default function ProfilePage() {
         }
       } catch (e) {
         console.error('Profile load error:', e);
+        logError('db_read_failed', { source: 'profile', ...errorFields(e) }, 'Profile failed to load');
       }
     };
     load();
@@ -107,6 +109,7 @@ export default function ProfilePage() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
+      logError('permission_denied', { permission: 'media_library', purpose: 'profile_image', status }, 'Photo library permission denied (profile)');
       Alert.alert(t('permissionNeeded'), t('permissionMsg'));
       return;
     }
@@ -131,6 +134,7 @@ export default function ProfilePage() {
         setProfileImage(downloadUrl);
       } catch (e) {
         console.error('Profile image upload error:', e);
+        logError('profile_upload_failed', errorFields(e), 'Profile picture upload failed');
         Alert.alert(t('error'), t('uploadFailedMsg'));
       }
     }
@@ -149,6 +153,7 @@ export default function ProfilePage() {
       router.replace('/auth/sign-in');
     } catch (e) {
       console.error('Error deleting account:', e);
+      logError('account_delete_failed', errorFields(e), 'Account deletion failed');
       Alert.alert(t('error'), t('deleteError'));
     }
   };

@@ -1,0 +1,19 @@
+description: Every app event, by event name and severity (source of most dashboard charts).
+filter: logName="projects/triptailor-71050/logs/app-events"
+labelExtractors:
+  event: EXTRACT(jsonPayload.event)
+  severity: EXTRACT(severity)
+  platform: EXTRACT(jsonPayload.ctx.platform)
+  app_version: EXTRACT(jsonPayload.ctx.app_version)
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  labels:
+  - key: event
+    valueType: STRING
+  - key: severity
+    valueType: STRING
+  - key: platform
+    valueType: STRING
+  - key: app_version
+    valueType: STRING

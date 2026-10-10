@@ -1,0 +1,23 @@
+description: Time from player mount until the video is ready to play (ms).
+filter: logName="projects/triptailor-71050/logs/app-events" AND jsonPayload.event="video_ready"
+valueExtractor: EXTRACT(jsonPayload.params.time_to_ready_ms)
+labelExtractors:
+  network: EXTRACT(jsonPayload.ctx.network)
+  source: EXTRACT(jsonPayload.params.source)
+  video_id: EXTRACT(jsonPayload.params.video_id)
+metricDescriptor:
+  metricKind: DELTA
+  valueType: DISTRIBUTION
+  unit: ms
+  labels:
+  - key: network
+    valueType: STRING
+  - key: source
+    valueType: STRING
+  - key: video_id
+    valueType: STRING
+bucketOptions:
+  exponentialBuckets:
+    numFiniteBuckets: 20
+    growthFactor: 1.6
+    scale: 100

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import LanguagePicker from '../../components/LanguagePicker';
 import { useTranslation } from '../../i18n';
+import { errorFields, logError, logInfo, logWarning } from '../../lib/monitoring';
 
 export default function SignInScreen() {
   const { t, isRTL } = useTranslation();
@@ -41,9 +42,11 @@ export default function SignInScreen() {
     const auth = getAuth();
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      logInfo('login', { method: 'password' }, 'Signed in');
       await checkFirstTimeLogin(userCredential.user);
       setLoading(false);
     } catch (err) {
+      logWarning('sign_in_failed', { error_code: err?.code ?? null }, `Sign-in failed: ${err?.code ?? err?.message}`);
       setError(t('incorrectCredentials'));
       setLoading(false);
     }
@@ -56,6 +59,7 @@ export default function SignInScreen() {
       router.replace('/home/');
     } catch (err) {
       console.error('Error checking first-time login:', err.message);
+      logError('db_read_failed', { source: 'sign_in_first_login', ...errorFields(err) }, 'First-login check failed after sign-in');
       router.replace('/home/');
     }
   };
@@ -71,7 +75,8 @@ export default function SignInScreen() {
       await sendPasswordResetEmail(auth, emailForgotPassword);
       setMessage(t('resetLinkSent'));
       setEmailForgotPassword('');
-    } catch {
+    } catch (err) {
+      logWarning('password_reset_failed', { error_code: err?.code ?? null }, `Password reset failed: ${err?.code ?? err?.message}`);
       setMessage(t('invalidEmail'));
     } finally {
       setLoadingForgotPassword(false);

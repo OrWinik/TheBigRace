@@ -1,0 +1,25 @@
+description: Video events broken down by video, network type, cache/stream source and language.
+filter: logName="projects/triptailor-71050/logs/app-events" AND jsonPayload.event=~"^video_"
+labelExtractors:
+  event: EXTRACT(jsonPayload.event)
+  video_id: EXTRACT(jsonPayload.params.video_id)
+  network: EXTRACT(jsonPayload.ctx.network)
+  source: EXTRACT(jsonPayload.params.source)
+  language: EXTRACT(jsonPayload.ctx.language)
+  platform: EXTRACT(jsonPayload.ctx.platform)
+metricDescriptor:
+  metricKind: DELTA
+  valueType: INT64
+  labels:
+  - key: event
+    valueType: STRING
+  - key: video_id
+    valueType: STRING
+  - key: network
+    valueType: STRING
+  - key: source
+    valueType: STRING
+  - key: language
+    valueType: STRING
+  - key: platform
+    valueType: STRING

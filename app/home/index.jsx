@@ -24,7 +24,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import MonitoredVideo from '../../components/MonitoredVideo';
 import { useTranslation } from '../../i18n';
+import {
+  errorFields, logCritical, logError, logEvent, logInfo, logWarning, setContext, Severity,
+} from '../../lib/monitoring';
+import { prefetchVideo, warmVideoCache } from '../../lib/videoCache';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -50,80 +55,31 @@ const FEEDBACK_URLS = {
 };
 
 // ─── Firebase Storage video URLs ─────────────────────────────────────────────
+// 720p / ~1.8 Mbps / faststart re-encodes made by scripts/encode-videos.sh from
+// the originals listed in scripts/videos-manifest.json (the originals were
+// 1080p @ 19 Mbps, 100–320 MB each, and stalled on cellular data).
 const BUCKET = 'https://firebasestorage.googleapis.com/v0/b/triptailor-71050.firebasestorage.app/o';
 const videoUrl = (filename) => `${BUCKET}/${encodeURIComponent(filename)}?alt=media`;
+const raceVideo = (lang, key) => ({ id: key, uri: videoUrl(`race_v2_${lang}_${key}.mp4`) });
 
-const VIDEOS = {
-  // ── English (original) ──────────────────────────────────────────────────
-  en: {
-    welcome: { uri: videoUrl('belg_welcome_eng.mov') },
-    final: { uri: videoUrl('belg_final_eng.mov') },
-    v1: { uri: videoUrl('belg_v1.mov') },
-    v2: { uri: videoUrl('belg_v2.mov') },
-    v3: { uri: videoUrl('belg_v3.mov') },
-    v4: { uri: videoUrl('belg_v4.mov') },
-    v5: { uri: videoUrl('belg_v5.mov') },
-    v6: { uri: videoUrl('belg_v6.mov') },
-    v7: { uri: videoUrl('belg_v7.mov') },
-    v8: { uri: videoUrl('belg_v8.mov') },
-    v9: { uri: videoUrl('belg_v9.mov') },
-  },
+const VIDEO_LANGS = ['en', 'he', 'sr'];
+const VIDEO_KEYS = ['welcome', 'final', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9'];
+const SHORT_VIDEO_KEYS = ['v5', 'v8', 'final'];
 
-  // ── Hebrew ───────────────────────────────────────────────────────────────
-  he: {
-    welcome: { uri: videoUrl('WeELCOME HEBREW sub v2.0.mp4') },
-    final: { uri: videoUrl('FINAL HEBREW sub.mp4') },
-    v1: { uri: videoUrl('Misija 1 HEBREW sub v2.0.mp4') },
-    v2: { uri: videoUrl('Misija 2 HEBREW sub.mp4') },
-    v3: { uri: videoUrl('Misija 3 HEBREW sub.mp4') },
-    v4: { uri: videoUrl('Misija 4 HEBREW Sub.mp4') },
-    v5: { uri: videoUrl('Misija 5 HEBREW sub.mp4') },
-    v6: { uri: videoUrl('Misija 6 HEBREW sub.mp4') },
-    v7: { uri: videoUrl('Misija 7 HEBREW sub.mp4') },
-    v8: { uri: videoUrl('Misija 8 HEBREW sub.mp4') },
-    v9: { uri: videoUrl('Misija 9 HEBREW sub.mp4') },
-  },
+const VIDEOS = Object.fromEntries(VIDEO_LANGS.map((lang) => [
+  lang, Object.fromEntries(VIDEO_KEYS.map((key) => [key, raceVideo(lang, key)])),
+]));
 
-  // ── Serbian ──────────────────────────────────────────────────────────────
-  sr: {
-    welcome: { uri: videoUrl('WELCOME SERBIAN titl.mp4') },
-    final: { uri: videoUrl('FINAL SERBIAN titl.mp4') },
-    v1: { uri: videoUrl('Misija 1 SERBIAN titl.mp4') },
-    v2: { uri: videoUrl('Misija 2 SERBIAN titl.mp4') },
-    v3: { uri: videoUrl('Misija 3 SERBIAN titl.mp4') },
-    v4: { uri: videoUrl('Misija 4 SERBIAN titl.mp4') },
-    v5: { uri: videoUrl('Misija 5 SERBIAN titl 2.mp4') },
-    v6: { uri: videoUrl('Misija 6 SERBIAN titl.mp4') },
-    v7: { uri: videoUrl('Misija 7 SERBIAN titl.mp4') },
-    v8: { uri: videoUrl('Misija 8 SERBIAN titl.mp4') },
-    v9: { uri: videoUrl('Misija 9 SERBIAN titl.mp4') },
-  },
-};
+// Short race overrides for missions 5, 8 and the final video
+const SHORT_VIDEOS = Object.fromEntries(VIDEO_LANGS.map((lang) => [
+  lang, Object.fromEntries(SHORT_VIDEO_KEYS.map((key) => [key, raceVideo(lang, `short_${key}`)])),
+]));
 
-// ─── Helper — pick the right video set for the current language ───────────
 // Falls back to English if a language has no entry
 const getVideos = (language) => VIDEOS[language] ?? VIDEOS.en;
-
-// Short race video overrides — replace these URIs once Luka delivers the files
-const SHORT_VIDEOS = {
-  en: {
-    v5: { uri: videoUrl('belg_v5_short_eng.mov') },
-    v8: { uri: videoUrl('belg_v8_short_eng.mov') },
-    final: { uri: videoUrl('belg_final_short_eng.mov') },
-  },
-  he: {
-    v5: { uri: videoUrl('Misija 5 SHORT HEBREW sub.mp4') },
-    v8: { uri: videoUrl('Misija 8 SHORT HEBREW sub.mp4') },
-    final: { uri: videoUrl('FINAL SHORT HEBREW sub.mp4') },
-  },
-  sr: {
-    v5: { uri: videoUrl('Misija 5 SHORT SERBIAN titl.mov') },
-    v8: { uri: videoUrl('Misija 8 SHORT SERBIAN titl.mov') },
-    final: { uri: videoUrl('FINAL SHORT SERBIAN titl.mov') },
-  },
-};
-
 const getShortVideoOverrides = (language) => SHORT_VIDEOS[language] ?? SHORT_VIDEOS.en;
+
+const SUPPORT_EMAIL = 'thebigrace11@gmail.com';
 
 const RACE_PROGRESS_KEY = 'race_progress';
 
@@ -132,6 +88,9 @@ const saveRaceProgress = async (state) => {
     await AsyncStorage.setItem(RACE_PROGRESS_KEY, JSON.stringify(state));
   } catch (e) {
     console.warn('Failed to save race progress:', e);
+    logCritical('progress_save_failed', {
+      ...errorFields(e), saved_mission: state?.currentQuestion != null ? state.currentQuestion + 1 : null,
+    }, 'Could not save race progress to the device');
   }
 };
 
@@ -141,6 +100,7 @@ const loadRaceProgress = async () => {
     return data ? JSON.parse(data) : null;
   } catch (e) {
     console.warn('Failed to load race progress:', e);
+    logError('progress_load_failed', errorFields(e), 'Could not read saved race progress');
     return null;
   }
 };
@@ -150,6 +110,7 @@ const clearRaceProgress = async () => {
     await AsyncStorage.removeItem(RACE_PROGRESS_KEY);
   } catch (e) {
     console.warn('Failed to clear race progress:', e);
+    logWarning('progress_clear_failed', errorFields(e), 'Could not clear saved race progress');
   }
 };
 
@@ -383,10 +344,12 @@ export default function HomeScreen() {
   const [answerFocused, setAnswerFocused] = useState(false);
   const [clueVisible, setClueVisible] = useState(false);
   const [videoWatched, setVideoWatched] = useState({});
-  const [videoLoadErrors, setVideoLoadErrors] = useState({});
-  const [showTextFallback, setShowTextFallback] = useState({});
-  const videoLastProgress = useRef({});
-  const videoStallTimers = useRef({});
+
+  // Telemetry bookkeeping (not UI state)
+  const missionStartedAtRef = useRef({});   // mission index -> timestamp
+  const wrongAttemptsRef = useRef({});      // mission index -> wrong answers
+  const backgroundCountRef = useRef({});    // mission index -> times app left
+  const backgroundedAtRef = useRef(null);
 
   const [startTime, setStartTime] = useState(null);
   const [finalTime, setFinalTime] = useState(null);
@@ -412,13 +375,42 @@ export default function HomeScreen() {
   const textAlign = isRTL ? { textAlign: 'right' } : {};
   const rowStyle = isRTL ? { flexDirection: 'row-reverse' } : {};
 
+  // ── Monitoring context: attached to every logged event ────────────────────
+  useEffect(() => {
+    setContext({
+      game_code: gameCode || null,
+      race_type: raceType,
+      mission: showGameModal ? currentQuestion + 1 : null,
+    });
+  }, [gameCode, raceType, currentQuestion, showGameModal]);
+
+  // Index already-downloaded videos so players can use them straight away
+  useEffect(() => {
+    const lang = VIDEOS[language] ? language : 'en';
+    warmVideoCache([
+      ...Object.values(VIDEOS[lang]).map((v) => v.uri),
+      ...Object.values(SHORT_VIDEOS[lang]).map((v) => v.uri),
+    ]);
+  }, [language]);
+
+  // Once the team has a valid code, pre-download the welcome video and then
+  // mission 1 while they're still on the home screen (usually hotel wifi), so
+  // the race opens instantly. Both are the same for short and long races.
+  useEffect(() => {
+    if (!hasValidCode) return;
+    const lang = VIDEOS[language] ? language : 'en';
+    prefetchVideo(VIDEOS[lang].welcome.uri, 'welcome')
+      .then(() => prefetchVideo(VIDEOS[lang].v1.uri, 'v1'));
+  }, [hasValidCode, language]);
+
   // ── Remote answers — fetch overrides from Firebase on mount ────────────────
   const [remoteAnswers, setRemoteAnswers] = useState(null);
 
   useEffect(() => {
     get(ref(db, 'mission_answers'))
       .then((snap) => { if (snap.exists()) setRemoteAnswers(snap.val()); })
-      .catch(() => {});
+      .catch((e) => logWarning('remote_answers_fetch_failed', errorFields(e),
+        'Could not load extra accepted answers from the database'));
   }, []);
 
   // ── Set audio mode so videos play sound even with iPhone silent switch ─────
@@ -444,16 +436,30 @@ export default function HomeScreen() {
         userId: user?.uid,
       });
     }
-  }, [showGameModal, startTime, finalTime, gameCode, selectedCountry, currentQuestion, user]);
+  }, [showGameModal, startTime, finalTime, gameCode, selectedCountry, currentQuestion, raceType, user]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
+      const inRace = showGameModal && startTime && finalTime === null;
       if (nextState.match(/inactive|background/)) {
         saveCurrentProgress();
+        if (inRace && nextState === 'background' && !backgroundedAtRef.current) {
+          backgroundedAtRef.current = Date.now();
+          const count = (backgroundCountRef.current[currentQuestion] || 0) + 1;
+          backgroundCountRef.current[currentQuestion] = count;
+          logEvent('race_backgrounded', { count_this_mission: count }, {
+            severity: count > 3 ? Severity.WARNING : Severity.INFO,
+            message: `Left the app during mission ${currentQuestion + 1} (${count}x on this mission)`,
+          });
+        }
+      } else if (nextState === 'active' && backgroundedAtRef.current) {
+        const awayMs = Date.now() - backgroundedAtRef.current;
+        backgroundedAtRef.current = null;
+        if (inRace) logInfo('race_foregrounded', { away_ms: awayMs }, `Back in the app after ${Math.round(awayMs / 1000)}s`);
       }
     });
     return () => subscription.remove();
-  }, [saveCurrentProgress]);
+  }, [saveCurrentProgress, showGameModal, startTime, finalTime, currentQuestion]);
 
   // ── Restore race progress on mount ────────────────────────────────────────
   const [savedProgress, setSavedProgress] = useState(null);
@@ -461,12 +467,15 @@ export default function HomeScreen() {
   const checkSavedProgress = useCallback(async () => {
     const saved = await loadRaceProgress();
     if (!saved || saved.userId !== user?.uid) {
+      if (saved) logInfo('progress_discarded', { reason: 'different_user' }, 'Saved progress belongs to another user');
       await clearRaceProgress();
       setSavedProgress(null);
       return;
     }
     const hoursSinceSave = (Date.now() - saved.savedAt) / (1000 * 60 * 60);
     if (hoursSinceSave > 30 * 24) {
+      logInfo('progress_discarded', { reason: 'expired', hours_since_save: Math.round(hoursSinceSave) },
+        'Saved progress older than 30 days');
       await clearRaceProgress();
       setSavedProgress(null);
       return;
@@ -476,6 +485,13 @@ export default function HomeScreen() {
 
   const resumeRace = useCallback(async () => {
     if (!savedProgress) return;
+    logInfo('progress_restored', {
+      restored_mission: savedProgress.currentQuestion + 1,
+      elapsed_s: savedProgress.elapsedAtSave,
+      hours_since_save: Math.round(((Date.now() - savedProgress.savedAt) / 3600000) * 10) / 10,
+      restored_race_type: savedProgress.raceType || 'long',
+    }, `Resumed race at mission ${savedProgress.currentQuestion + 1}`);
+    missionStartedAtRef.current = { [savedProgress.currentQuestion]: Date.now() };
     setGameCode(savedProgress.gameCode);
     setSelectedCountry(savedProgress.selectedCountry);
     setCurrentQuestion(savedProgress.currentQuestion);
@@ -492,9 +508,12 @@ export default function HomeScreen() {
   }, [savedProgress]);
 
   const dismissSavedProgress = useCallback(async () => {
+    logInfo('progress_discarded', {
+      reason: 'user_dismissed', saved_mission: savedProgress ? savedProgress.currentQuestion + 1 : null,
+    }, 'User chose not to resume their saved race');
     await clearRaceProgress();
     setSavedProgress(null);
-  }, []);
+  }, [savedProgress]);
 
   // ── Check code flag on mount ───────────────────────────────────────────────
   useEffect(() => {
@@ -525,6 +544,8 @@ export default function HomeScreen() {
                 }
               });
             }
+            logInfo('code_expired_cleared', { age_days: Math.floor(age / 86400000) },
+              'Activation older than 30 days — cleared');
             await set(ref(db, `users/${user.uid}/hasSubmittedCode`), false);
             await set(ref(db, `users/${user.uid}/codeSubmittedAt`), null);
             await set(ref(db, `users/${user.uid}/game_code`), null);
@@ -535,6 +556,8 @@ export default function HomeScreen() {
         }
       } catch (e) {
         console.error('Code flag check error:', e);
+        logError('code_flag_check_failed', errorFields(e),
+          'Could not check whether this user already activated a code — they will be asked for it again');
         setHasValidCode(false);
       } finally {
         setCodeChecked(true);
@@ -586,10 +609,15 @@ export default function HomeScreen() {
     const trimmed = inputCode.trim();
     if (!trimmed) { Alert.alert(t('error'), t('errorEnterCode')); return; }
     setIsValidating(true);
+    const validateStarted = Date.now();
+    const invalid = (reason, extra = {}) => logWarning('code_invalid', {
+      reason, attempted_code: trimmed.slice(0, 20), code_length: trimmed.length, ...extra,
+    }, `Code rejected: ${reason}`);
     try {
       // ── Find matching code in activation_codes/ ───────────────────────────
       const codesSnap = await get(ref(db, 'activation_codes'));
       if (!codesSnap.exists()) {
+        logError('code_list_empty', {}, 'activation_codes is empty or unreadable');
         Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
         return;
       }
@@ -604,11 +632,13 @@ export default function HomeScreen() {
       });
 
       if (!codeKey || !codeData) {
+        invalid('not_found');
         Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
         return;
       }
 
       if (codeData.expired === true) {
+        invalid('expired', { tier: codeData.tier });
         Alert.alert(t('invalidCode'), t('codeExpired'));
         return;
       }
@@ -626,7 +656,10 @@ export default function HomeScreen() {
       const markCodeUsed = () =>
         set(ref(db, `activation_codes/${codeKey}/used`), true);
 
-      const activateAndProceed = async () => {
+      const activateAndProceed = async (role) => {
+        logInfo('code_activated', {
+          tier, role, activated_code: trimmed.slice(0, 20), lookup_ms: Date.now() - validateStarted,
+        }, `Code activated (${tier}, ${role})`);
         await saveUserFlag();
         setGameCode(trimmed);
         setCodeTier(trimmed.length >= 6 ? 'long' : 'short');
@@ -640,11 +673,12 @@ export default function HomeScreen() {
       // ─────────────────────────────────────────────────────────────────────
       if (tier === '1dev') {
         if (currentEmail !== codeEmail?.toLowerCase().trim()) {
+          invalid('email_mismatch', { tier });
           Alert.alert(t('invalidCode'), t('invalidCodeMsg'));
           return;
         }
         await markCodeUsed();
-        await activateAndProceed();
+        await activateAndProceed('primary');
         return;
       }
 
@@ -659,19 +693,20 @@ export default function HomeScreen() {
 
       if (isPrimary) {
         await markCodeUsed();
-        await activateAndProceed();
+        await activateAndProceed('primary');
         return;
       }
 
       // Secondary user — already registered under this code (re-login)
       const alreadyJoined = joinedUsers.some((entry) => entry.uid === user.uid);
       if (alreadyJoined) {
-        await activateAndProceed();
+        await activateAndProceed('secondary_rejoin');
         return;
       }
 
       // Check remaining slots
       if (joinedUsers.length >= maxExtras) {
+        invalid('full', { tier, joined: joinedUsers.length, max_extras: maxExtras });
         Alert.alert(t('invalidCode'), t('codeFull'));
         return;
       }
@@ -682,10 +717,13 @@ export default function HomeScreen() {
         email: user.email,
         joinedAt: Date.now(),
       });
-      await activateAndProceed();
+      await activateAndProceed('secondary_new');
 
     } catch (e) {
       console.error('validateCode error:', e);
+      logCritical('code_validate_error', {
+        ...errorFields(e), attempted_code: trimmed.slice(0, 20), lookup_ms: Date.now() - validateStarted,
+      }, 'Code check failed (network/database) — customer could not get into the game');
       Alert.alert(t('error'), t('validateError'));
     } finally {
       setIsValidating(false);
@@ -705,6 +743,7 @@ export default function HomeScreen() {
   };
 
   const selectRaceType = (type) => {
+    logInfo('race_type_selected', { selected: type }, `Chose the ${type} race`);
     setRaceType(type);
     setShowRaceTypeModal(false);
     setShowWatchVideosModal(true);
@@ -727,7 +766,10 @@ export default function HomeScreen() {
 
   const handleSkipWelcome = async () => {
     if (skipWelcomeTimerRef.current) clearTimeout(skipWelcomeTimerRef.current);
-    if (welcomeVideoRef.current) await welcomeVideoRef.current.pauseAsync();
+    const st = await welcomeVideoRef.current?.getStatusAsync().catch(() => null);
+    logInfo('video_skipped', { video_id: 'welcome', position_ms: st?.positionMillis ?? null, duration_ms: st?.durationMillis ?? null },
+      'Skipped the welcome video');
+    if (welcomeVideoRef.current) await welcomeVideoRef.current.pauseAsync().catch(() => {});
     setWelcomeEnded(true);
     setShowSkipWelcome(true);
   };
@@ -740,13 +782,58 @@ export default function HomeScreen() {
 
   const handleSkipFinish = async () => {
     if (skipFinishTimerRef.current) clearTimeout(skipFinishTimerRef.current);
-    if (finishVideoRef.current) await finishVideoRef.current.pauseAsync();
+    const st = await finishVideoRef.current?.getStatusAsync().catch(() => null);
+    logInfo('video_skipped', { video_id: 'final', position_ms: st?.positionMillis ?? null, duration_ms: st?.durationMillis ?? null },
+      'Skipped the final video');
+    if (finishVideoRef.current) await finishVideoRef.current.pauseAsync().catch(() => {});
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     setFinishVideoEnded(true);
   };
 
+  // ── Video failed → back to home with a message ───────────────────────────────
+  // Progress is saved first so the team can resume once they have a connection.
+  const handleVideoFailed = (where) => {
+    if (where === 'final') {
+      // Race is already recorded — just show the results instead of the video.
+      handleFinishVideoEnd();
+      return;
+    }
+    saveCurrentProgress();
+    resetAll();
+    setTimeout(() => checkSavedProgress(), 100);
+    Alert.alert(
+      t('videoFailedTitle'),
+      t('videoFailedMsg').replace('{email}', SUPPORT_EMAIL),
+      [
+        {
+          text: t('contactSupport'),
+          onPress: () => {
+            logInfo('support_contact_tapped', { from: where }, 'Opened support email after a video failure');
+            Linking.openURL(`mailto:${SUPPORT_EMAIL}`).catch(() => {});
+          },
+        },
+        { text: t('ok'), style: 'cancel' },
+      ],
+    );
+  };
+
+  // ── Mission start tracking ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!showGameModal || currentQuestion !== furthestQuestion) return;
+    if (missionStartedAtRef.current[currentQuestion]) return;
+    missionStartedAtRef.current[currentQuestion] = Date.now();
+    logInfo('mission_start', { mission_number: currentQuestion + 1, of: belgradeQuestions.length },
+      `Started mission ${currentQuestion + 1}`);
+  }, [showGameModal, currentQuestion, furthestQuestion]);
+
   // ── Start Race ─────────────────────────────────────────────────────────────
   const startRace = () => {
+    logInfo('race_start', {
+      selected_race_type: raceType, code_tier: codeTier, missions: belgradeQuestions.length, city: selectedCountry,
+    }, `Race started (${raceType}, ${belgradeQuestions.length} missions)`);
+    missionStartedAtRef.current = {};
+    wrongAttemptsRef.current = {};
+    backgroundCountRef.current = {};
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     setShowWelcomeModal(false);
     setShowGameModal(true);
@@ -767,6 +854,7 @@ export default function HomeScreen() {
   const takePhotoFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
+      logError('permission_denied', { permission: 'camera', purpose: 'photo', status }, 'Camera permission denied for a photo mission');
       Alert.alert(t('permissionNeeded'), t('cameraPermission'));
       return;
     }
@@ -779,6 +867,7 @@ export default function HomeScreen() {
   const pickPhotoFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
+      logError('permission_denied', { permission: 'media_library', status }, 'Photo library permission denied');
       Alert.alert(t('permissionNeeded'), t('permissionMsg'));
       return;
     }
@@ -806,6 +895,7 @@ export default function HomeScreen() {
   const recordVideoFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
+      logError('permission_denied', { permission: 'camera', purpose: 'video', status }, 'Camera permission denied for a video mission');
       Alert.alert(t('permissionNeeded'), t('cameraVideoPermission'));
       return;
     }
@@ -818,6 +908,7 @@ export default function HomeScreen() {
   const pickVideoFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
+      logError('permission_denied', { permission: 'media_library', status }, 'Photo library permission denied');
       Alert.alert(t('permissionNeeded'), t('permissionMsg'));
       return;
     }
@@ -839,6 +930,23 @@ export default function HomeScreen() {
         { text: t('fromGallery'), onPress: pickVideoFromGallery },
         { text: t('cancel'), style: 'cancel' },
       ]);
+    }
+  };
+
+  // Uploads one submission and logs the outcome. Failures don't block the team
+  // (same as before) but are now logged as CRITICAL instead of vanishing.
+  const uploadSubmission = async (uri, dbPath, kind) => {
+    const started = Date.now();
+    const info = await FileSystem.getInfoAsync(uri).catch(() => null);
+    const fields = { kind, bytes: info?.size ?? null, mission_number: currentQuestion + 1 };
+    try {
+      await saveFileToDatabase(uri, dbPath);
+      logInfo('upload_succeeded', { ...fields, upload_ms: Date.now() - started },
+        `Uploaded mission ${currentQuestion + 1} ${kind}`);
+    } catch (e) {
+      console.warn(`${kind} upload failed silently:`, e);
+      logCritical('upload_failed', { ...fields, ...errorFields(e), upload_ms: Date.now() - started },
+        `Mission ${currentQuestion + 1} ${kind} upload failed — submission lost`);
     }
   };
 
@@ -868,7 +976,11 @@ export default function HomeScreen() {
         body: base64,
       });
 
-      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+      if (!response.ok) {
+        const err = new Error(`Upload failed: ${response.status}`);
+        err.code = `http_${response.status}`;
+        throw err;
+      }
       const json = await response.json();
       const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${storagePath}?alt=media&token=${json.downloadTokens}`;
       await set(ref(db, dbPath), downloadUrl);
@@ -881,14 +993,15 @@ export default function HomeScreen() {
 
   const resetAnswerState = () => {
     setTextAnswer(''); setPhotoUri(null); setVideoUri(null); setWrongAnswer(false); setClueVisible(false);
-    setVideoWatched({}); setVideoLoadErrors({}); setShowTextFallback({});
+    setVideoWatched({});
   };
 
   // ── Submit answer ──────────────────────────────────────────────────────────
   const submitAnswer = async () => {
     const q = belgradeQuestions[currentQuestion];
     const vKey = `${currentQuestion}-0`;
-    if (q.videos && q.videos.length > 0 && !videoWatched[vKey] && !showTextFallback[vKey]) {
+    if (q.videos && q.videos.length > 0 && !videoWatched[vKey]) {
+      logWarning('video_submit_blocked', { video_id: q.videos[0]?.id }, 'Submit pressed before the mission video was watched');
       Alert.alert(t('watchVideoFirst'), t('watchVideoFirstMsg'));
       return;
     }
@@ -900,7 +1013,19 @@ export default function HomeScreen() {
           .replace(/[čć]/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z').replace(/đ/g, 'd');
         const normalizedInput = normalize(textAnswer);
         const textOk = allAnswers.some(a => normalize(a) === normalizedInput);
-        if (!textOk) { setWrongAnswer(true); return; }
+        if (!textOk) {
+          const attempts = (wrongAttemptsRef.current[currentQuestion] || 0) + 1;
+          wrongAttemptsRef.current[currentQuestion] = attempts;
+          logInfo('answer_wrong', {
+            mission_number: currentQuestion + 1, attempt: attempts, answer: textAnswer.trim().slice(0, 50),
+          }, `Wrong answer on mission ${currentQuestion + 1}: "${textAnswer.trim().slice(0, 50)}"`);
+          if (attempts === 3) {
+            logWarning('answer_repeated_wrong', { mission_number: currentQuestion + 1, attempt: attempts },
+              `3 wrong answers on mission ${currentQuestion + 1}`);
+          }
+          setWrongAnswer(true);
+          return;
+        }
       }
     }
     if ((q.answerType === 'photo' || q.answerType === 'text+photo') && !photoUri) {
@@ -914,10 +1039,20 @@ export default function HomeScreen() {
     try {
       const qNum = currentQuestion + 1;
       const basePath = `users/${user.uid}/results/answers/q${qNum}`;
-      if (photoUri) await saveFileToDatabase(photoUri, `${basePath}/picture`).catch(e => console.warn('Photo upload failed silently:', e));
-      if (videoUri) await saveFileToDatabase(videoUri, `${basePath}/video`).catch(e => console.warn('Video upload failed silently:', e));
+      if (photoUri) await uploadSubmission(photoUri, `${basePath}/picture`, 'photo');
+      if (videoUri) await uploadSubmission(videoUri, `${basePath}/video`, 'video');
+      const missionStarted = missionStartedAtRef.current[currentQuestion];
+      logInfo('mission_complete', {
+        mission_number: currentQuestion + 1,
+        duration_s: missionStarted ? Math.round((Date.now() - missionStarted) / 1000) : null,
+        wrong_attempts: wrongAttemptsRef.current[currentQuestion] || 0,
+        clue_used: clueVisible,
+        times_backgrounded: backgroundCountRef.current[currentQuestion] || 0,
+      }, `Completed mission ${currentQuestion + 1}`);
       if (currentQuestion === belgradeQuestions.length - 1) {
         const stopped = elapsedTime;
+        logInfo('race_complete', { total_s: stopped, missions: belgradeQuestions.length },
+          `Race finished in ${formatTime(stopped)}`);
         setFinalTime(stopped);
         await saveResults(stopped);
         await clearRaceProgress();
@@ -940,6 +1075,8 @@ export default function HomeScreen() {
       }
     } catch (e) {
       console.error('Upload error:', e);
+      logError('submit_failed', { mission_number: currentQuestion + 1, ...errorFields(e) },
+        `Submitting mission ${currentQuestion + 1} failed`);
       Alert.alert(t('uploadFailed'), t('uploadFailedMsg'));
     } finally {
       setIsUploading(false);
@@ -948,7 +1085,10 @@ export default function HomeScreen() {
 
   // ── Save results ───────────────────────────────────────────────────────────
   const saveResults = async (time) => {
-    if (!user) return;
+    if (!user) {
+      logCritical('results_save_failed', { reason: 'no_user', total_s: time }, 'Race finished but no signed-in user — result not saved');
+      return;
+    }
     try {
       await push(ref(db, `users/${user.uid}/results/races`), {
         gameCode, country: selectedCountry, time,
@@ -958,6 +1098,8 @@ export default function HomeScreen() {
       });
     } catch (e) {
       console.error('Error saving results:', e);
+      logCritical('results_save_failed', { ...errorFields(e), total_s: time },
+        'Race finished but the result could not be saved — missing from leaderboard');
       Alert.alert(t('error'), t('saveError'));
     }
   };
@@ -966,7 +1108,9 @@ export default function HomeScreen() {
   const exitGame = () => {
     Alert.alert(t('exitTitle'), t('exitMessage'), [
       { text: t('stay'), style: 'cancel' },
-      { text: t('exitConfirm'), style: 'destructive', onPress: async () => { saveCurrentProgress(); resetAll(); setTimeout(() => checkSavedProgress(), 100); } },
+      { text: t('exitConfirm'), style: 'destructive', onPress: async () => {
+        logInfo('race_exit', { mission_number: currentQuestion + 1, elapsed_s: elapsedTime }, `Exited the race at mission ${currentQuestion + 1}`);
+        saveCurrentProgress(); resetAll(); setTimeout(() => checkSavedProgress(), 100); } },
     ]);
   };
 
@@ -979,7 +1123,6 @@ export default function HomeScreen() {
     setShowRaceTypeModal(false); setRaceType(null);
     setInputCode(''); setSelectedCountry('');
     setCurrentQuestion(0); setFurthestQuestion(0); resetAnswerState();
-    setVideoWatched({}); setVideoLoadErrors({});
     setStartTime(null); setFinalTime(null); setElapsedTime(0);
     setWelcomeEnded(false); setShowSkipWelcome(false);
     setFinishVideoEnded(false); setShowSkipFinish(false);
@@ -1031,7 +1174,10 @@ export default function HomeScreen() {
         <View style={styles.clueBlock}>
           <TouchableOpacity
             style={styles.clueButton}
-            onPress={() => setClueVisible(v => !v)}
+            onPress={() => {
+              if (!clueVisible) logInfo('clue_opened', { mission_number: currentQuestion + 1 }, `Opened the clue on mission ${currentQuestion + 1}`);
+              setClueVisible(v => !v);
+            }}
           >
             <Text style={styles.clueButtonText}>
               {clueVisible ? t('hideClue') : t('showClue')}
@@ -1186,9 +1332,11 @@ export default function HomeScreen() {
       {/* ── Welcome Video Modal ── */}
       <Modal visible={showWelcomeModal} animationType="fade">
         <View style={styles.videoFullScreen}>
-          <Video
+          <MonitoredVideo
             ref={welcomeVideoRef}
-            source={V.welcome}
+            videoId="welcome"
+            remoteUri={V.welcome.uri}
+            onFailed={() => handleVideoFailed('welcome')}
             style={styles.fullScreenVideo}
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
@@ -1201,6 +1349,8 @@ export default function HomeScreen() {
               }
             }}
             onPlaybackStatusUpdate={(status) => {
+              // Pre-download mission 1 while the welcome video plays
+              if (status.isLoaded) prefetchVideo(belgradeQuestions[0]?.videos[0]?.uri, belgradeQuestions[0]?.videos[0]?.id);
               if (status.isLoaded && status.didJustFinish) handleWelcomeVideoEnd();
             }}
           />
@@ -1234,24 +1384,12 @@ export default function HomeScreen() {
               </View>
               <View style={[styles.headerButtons, rowStyle]}>
                 {currentQuestion > 0 && (
-                  <TouchableOpacity style={styles.backButton} onPress={() => {
-                    Object.values(videoStallTimers.current).forEach(t => t && clearTimeout(t));
-                    videoStallTimers.current = {};
-                    setShowTextFallback({});
-                    setVideoLoadErrors({});
-                    setCurrentQuestion(currentQuestion - 1);
-                  }}>
+                  <TouchableOpacity style={styles.backButton} onPress={() => setCurrentQuestion(currentQuestion - 1)}>
                     <Text style={styles.backButtonText}>{isRTL ? '→' : '←'} {t('backButton')}</Text>
                   </TouchableOpacity>
                 )}
                 {currentQuestion < furthestQuestion && (
-                  <TouchableOpacity style={styles.nextButton} onPress={() => {
-                    Object.values(videoStallTimers.current).forEach(t => t && clearTimeout(t));
-                    videoStallTimers.current = {};
-                    setShowTextFallback({});
-                    setVideoLoadErrors({});
-                    setCurrentQuestion(currentQuestion + 1);
-                  }}>
+                  <TouchableOpacity style={styles.nextButton} onPress={() => setCurrentQuestion(currentQuestion + 1)}>
                     <Text style={styles.nextButtonText}>{t('nextButton')} {isRTL ? '←' : '→'}</Text>
                   </TouchableOpacity>
                 )}
@@ -1277,79 +1415,32 @@ export default function HomeScreen() {
               {belgradeQuestions[currentQuestion].videos.map((src, i) => {
                 const vKey = `${currentQuestion}-${i}`;
                 const isWatched = videoWatched[vKey];
-                const errCount = videoLoadErrors[vKey] || 0;
-                const showFallback = showTextFallback[vKey];
+                // Next video to pre-download once this one is watched
+                const nextSrc = belgradeQuestions[currentQuestion + 1]?.videos[0] ?? V.final;
                 return (
-                  <View key={`${currentQuestion}-${i}`} style={styles.videoWrapper}>
-                    {showFallback ? (
-                      <View style={styles.videoFallback}>
-                        <Text style={styles.videoFallbackIcon}>⚠</Text>
-                        <Text style={styles.videoFallbackText}>{t('noConnectionMsg')}</Text>
-                      </View>
-                    ) : (
-                      <Video
-                        source={src} style={styles.mediaVideo}
-                        useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
-                        onFullscreenUpdate={({ fullscreenUpdate }) => {
-                          if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
-                            ScreenOrientation.unlockAsync();
-                          } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
-                            ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                          }
-                        }}
-                        onPlaybackStatusUpdate={(status) => {
-                          if (status.isLoaded && status.durationMillis > 0) {
-                            if (!isWatched) {
-                              const pct = status.positionMillis / status.durationMillis;
-                              if (pct >= 0.9 || status.didJustFinish) {
-                                setVideoWatched(prev => ({ ...prev, [vKey]: true }));
-                              }
-                            }
-                            if (status.isPlaying) {
-                              const pos = status.positionMillis;
-                              if (videoLastProgress.current[vKey] === pos) {
-                                if (!videoStallTimers.current[vKey]) {
-                                  videoStallTimers.current[vKey] = setTimeout(() => {
-                                    setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
-                                  }, 15000);
-                                }
-                              } else {
-                                videoLastProgress.current[vKey] = pos;
-                                if (videoStallTimers.current[vKey]) {
-                                  clearTimeout(videoStallTimers.current[vKey]);
-                                  videoStallTimers.current[vKey] = null;
-                                }
-                              }
-                            }
-                          } else if (status.isBuffering && status.positionMillis > 0) {
-                            if (!videoStallTimers.current[vKey]) {
-                              videoStallTimers.current[vKey] = setTimeout(() => {
-                                setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
-                              }, 15000);
-                            }
-                          }
-                        }}
-                        onError={() => {
-                          const newCount = errCount + 1;
-                          setVideoLoadErrors(prev => ({ ...prev, [vKey]: newCount }));
-                          if (newCount >= 2) {
-                            setShowTextFallback(prev => ({ ...prev, [vKey]: true }));
-                          }
-                        }}
-                      />
-                    )}
+                  <View key={vKey} style={styles.videoWrapper}>
+                    <MonitoredVideo
+                      videoId={src.id}
+                      remoteUri={src.uri}
+                      style={styles.mediaVideo}
+                      useNativeControls resizeMode={ResizeMode.CONTAIN} shouldPlay={false}
+                      onFullscreenUpdate={({ fullscreenUpdate }) => {
+                        if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_PRESENT) {
+                          ScreenOrientation.unlockAsync();
+                        } else if (fullscreenUpdate === Video.FULLSCREEN_UPDATE_PLAYER_WILL_DISMISS) {
+                          ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                        }
+                      }}
+                      onWatched={() => {
+                        setVideoWatched(prev => ({ ...prev, [vKey]: true }));
+                        prefetchVideo(nextSrc?.uri, nextSrc?.id);
+                      }}
+                      onFailed={() => handleVideoFailed(`mission_${currentQuestion + 1}`)}
+                    />
                     {isWatched && (
                       <View style={styles.watchedBadge}>
                         <Text style={styles.watchedBadgeText}>✓ {t('videoWatched')}</Text>
                       </View>
-                    )}
-                    {errCount >= 2 && !showFallback && (
-                      <TouchableOpacity
-                        style={styles.showInstructionsBtn}
-                        onPress={() => setShowTextFallback(prev => ({ ...prev, [vKey]: true }))}
-                      >
-                        <Text style={styles.showInstructionsBtnText}>{t('showInstructions')}</Text>
-                      </TouchableOpacity>
                     )}
                   </View>
                 );
@@ -1396,9 +1487,11 @@ export default function HomeScreen() {
         <View style={styles.videoFullScreen}>
           {!finishVideoEnded ? (
             <>
-              <Video
+              <MonitoredVideo
                 ref={finishVideoRef}
-                source={V.final}
+                videoId={V.final.id}
+                remoteUri={V.final.uri}
+                onFailed={() => handleVideoFailed('final')}
                 style={styles.fullScreenVideo}
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay
@@ -1551,11 +1644,6 @@ const styles = StyleSheet.create({
   videoWrapper: { marginBottom: 16, position: 'relative' },
   watchedBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(105,246,184,0.9)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   watchedBadgeText: { color: C.base, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  videoFallback: { width: '100%', height: 220, borderRadius: 8, backgroundColor: C.surfaceHigh, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  videoFallbackIcon: { fontSize: 32, marginBottom: 10 },
-  videoFallbackText: { fontSize: 14, color: C.onVariant, textAlign: 'center', lineHeight: 20 },
-  showInstructionsBtn: { marginTop: 8, alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 16, backgroundColor: C.surfaceHigh, borderRadius: 6, borderWidth: 1, borderColor: C.primary },
-  showInstructionsBtnText: { color: C.primary, fontSize: 12, fontWeight: '700', letterSpacing: 2 },
   feedbackButton: { width: '100%', paddingVertical: 14, borderRadius: 4, borderWidth: 1.5, borderColor: C.onVariant, alignItems: 'center', marginTop: 4 },
   feedbackButtonText: { color: C.onVariant, fontSize: 13, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' },
   feedbackSubtext: { color: C.onVariant, fontSize: 13, marginTop: 10, textAlign: 'center', letterSpacing: 0.3 },

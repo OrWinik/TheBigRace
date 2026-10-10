@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from '../../i18n';
+import { errorFields, logError, logEvent, Severity } from '../../lib/monitoring';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -57,7 +58,12 @@ export default function LeaderboardScreen() {
         const db   = getDatabase();
         setCurrentUid(auth.currentUser?.uid ?? null);
 
+        const loadStarted = Date.now();
         const usersSnap = await get(ref(db, 'users'));
+        logEvent('leaderboard_loaded', { load_ms: Date.now() - loadStarted, users: usersSnap.size ?? null }, {
+          severity: Date.now() - loadStarted > 8000 ? Severity.WARNING : Severity.INFO,
+          message: `Leaderboard loaded in ${((Date.now() - loadStarted) / 1000).toFixed(1)}s`,
+        });
         if (!usersSnap.exists()) { setEntries([]); setLoading(false); return; }
 
         const allEntries = [];
@@ -94,6 +100,7 @@ export default function LeaderboardScreen() {
         setEntries(allEntries.slice(0, 10));
       } catch (e) {
         console.error('Leaderboard load error:', e);
+        logError('db_read_failed', { source: 'leaderboard', ...errorFields(e) }, 'Leaderboard failed to load');
         setEntries([]);
       } finally {
         setLoading(false);
